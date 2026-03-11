@@ -1,0 +1,9 @@
+{
+    "name": "expensify-tracker",
+    "version": "1.0.0",
+    "description": "Professional Expense Tracker with AI",
+    "main": "index.html",
+    "scripts": {
+        "build": "mkdir -p js && echo \"export const CONFIG = { GEMINI_API_KEY: \\\"$GEMINI_API_KEY\\\", GROQ_API_KEY: \\\"$GROQ_API_KEY\\\" };\" > js/config.js"
+    }
+}

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Profile - EXPENSIFIER</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --profile-gradient: linear-gradient(135deg, #5B6CF2 0%, #7C3AED 100%);
+    }
+
+    .profile-header {
+      background: var(--profile-gradient);
+      padding: 60px 0 100px 0;
+      color: white;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: linear-gradient(to top, var(--bg-light), transparent);
+    }
+
+    .profile-pic-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      padding: 5px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-pic {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid white;
+    }
+
+    .level-badge-large {
+      position: absolute;
+      bottom: 0;
+      right: 10px;
+      background: #FFD700;
+      color: #000;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      border: 2px solid white;
+    }
+
+    .profile-info h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 5px;
+      letter-spacing: -1px;
+    }
+
+    .profile-info p {
+      opacity: 0.9;
+      font-size: 1.1rem;
+    }
+
+    .profile-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: -60px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .gamification-card {
+      background: white;
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: var(--shadow-xl);
+      text-align: center;
+    }
+
+    .xp-section {
+      margin-top: 24px;
+    }
+
+    .xp-bar-container {
+      width: 100%;
+      height: 12px;
+      background: #F1F5F9;
+      border-radius: 10px;
+      margin: 15px 0;
+      overflow: hidden;
+    }
+
+    #xp-bar-fill {
+      height: 100%;
+      background: var(--profile-gradient);
+      width: 0%;
+      border-radius: 10px;
+      transition: width 1s ease-out;
+    }
+
+    .xp-details {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .stat-mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    .stat-mini-card {
+      background: #F8FAFC;
+      padding: 20px;
+      border-radius: 16px;
+      text-align: left;
+    }
+
+    .stat-mini-card span {
+      display: block;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-mini-card div {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-dark);
+    }
+
+    .back-btn {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+
+<body style="background: var(--bg-light);">
+  <!-- Profile Header -->
+  <header class="profile-header">
+    <div class="container">
+      <a href="index.html" class="back-btn">← Back to Dashboard</a>
+      <div class="profile-pic-container animate-fade-in-down">
+        <img id="profile-photo" class="profile-pic"
+          src="https://ui-avatars.com/api/?name=User&background=fff&color=5B6CF2" alt="Profile">
+        <div class="level-badge-large">LEVEL <span id="profile-level">0</span></div>
+      </div>
+      <div class="profile-info animate-fade-in-up">
+        <h1 id="profile-name">Loading...</h1>
+        <p id="profile-email">---</p>
+        <button id="logout-btn" class="btn btn-ghost"
+          style="margin-top: 20px; color: white; border-color: rgba(255,255,255,0.3);">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container">
+    <div class="profile-card-grid">
+      <!-- Gamification Card -->
+      <div class="gamification-card animate-fade-in-up stagger-1">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-dark);">Gamer Progression</h3>
+        <p class="muted">Master your finances to level up!</p>
+
+        <div class="xp-section">
+          <div class="xp-details">
+            <span id="rank-name">NOVICE</span>
+            <span><span id="current-xp">0</span> / <span id="next-level-xp">100</span> XP</span>
+          </div>
+          <div class="xp-bar-container">
+            <div id="xp-bar-fill"></div>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--muted); margin-top: 10px;">
+            <span id="xp-away">100</span> XP until Level <span id="next-level-num">1</span>
+          </p>
+        </div>
+
+        <div class="stat-mini-grid">
+          <div class="stat-mini-card">
+            <span>Total Earned</span>
+            <div id="total-xp-earned">0 XP</div>
+          </div>
+          <div class="stat-mini-card">
+            <span>Achievements</span>
+            <div id="achievement-count">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial Summary Card in Profile -->
+      <div class="gamification-card animate-fade-in-up stagger-2">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-dark);">Financial Health</h3>
+        <p class="muted">Your lifetime tracking overview</p>
+
+        <div class="stat-mini-grid">
+          <div class="stat-mini-card">
+            <span>Total Transactions</span>
+            <div id="total-tx">0</div>
+          </div>
+          <div class="stat-mini-card">
+            <span>Savings Score</span>
+            <div id="savings-score">A+</div>
+          </div>
+          <div class="stat-mini-card">
+            <span>Top Category</span>
+            <div id="top-category">Food</div>
+          </div>
+          <div class="stat-mini-card">
+            <span>Active Days</span>
+            <div id="active-days">1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Telegram Bot Sync Card -->
+      <div id="telegram-sync-card" class="gamification-card animate-fade-in-up stagger-3"
+        style="background: linear-gradient(135deg, rgba(36, 161, 222, 0.1) 0%, rgba(36, 161, 222, 0.05) 100%); border: 1px solid rgba(36, 161, 222, 0.2);">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #24A1DE;">📱 Telegram Bot Sync</h3>
+        <p class="muted">Chat with your data on the go!</p>
+
+        <div id="sync-code-container"
+          style="margin-top: 24px; padding: 20px; background: white; border-radius: 16px; border: 1px dashed #24A1DE;">
+          <div id="sync-code-text"
+            style="font-size: 2rem; font-weight: 800; color: #24A1DE; letter-spacing: 4px; display: none; margin-bottom: 15px;">
+            ------</div>
+          <button id="generate-sync-btn" class="btn btn-primary"
+            style="background: #24A1DE; border-color: #24A1DE; width: 100%;">Generate Sync Code</button>
+          <p id="sync-instruction" style="font-size: 0.8rem; color: var(--muted); margin-top: 12px;">Click to generate
+            code, then send it to <a href="https://t.me/8320318012:AAEn76oOBff6OjGLzgWXygktGeUxALEcm2g" target="_blank"
+              style="color: #24A1DE; font-weight: 700;">@ExpensifierBot</a></p>
+        </div>
+
+        <div id="linked-status" style="display: none; margin-top: 24px; color: #10B981; font-weight: 700;">
+          ✅ Account Linked to Telegram
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievements Section -->
+    <section style="margin-top: 60px; margin-bottom: 60px;">
+      <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 24px;">Achievements</h3>
+      <div class="dashboard-grid" id="achievements-grid">
+        <!-- Will be populated via JS -->
+        <div class="stat-card" style="opacity: 0.5; filter: grayscale(1);">
+          <div class="stat-card-header">
+            <div class="stat-card-icon">🚀</div>
+            <span class="stat-card-badge">LOCKED</span>
+          </div>
+          <div class="stat-card-body">
+            <h3>Fast Starter</h3>
+            <p class="muted">Add 5 expenses in one day</p>
+          </div>
+        </div>
+        <div class="stat-card" style="opacity: 0.5; filter: grayscale(1);">
+          <div class="stat-card-header">
+            <div class="stat-card-icon">💎</div>
+            <span class="stat-card-badge">LOCKED</span>
+          </div>
+          <div class="stat-card-body">
+            <h3>Big Saver</h3>
+            <p class="muted">Save 50% of your monthly income</p>
+          </div>
+        </div>
+        <div class="stat-card" style="opacity: 0.5; filter: grayscale(1);">
+          <div class="stat-card-header">
+            <div class="stat-card-icon">🔥</div>
+            <span class="stat-card-badge">LOCKED</span>
+          </div>
+          <div class="stat-card-body">
+            <h3>On Fire</h3>
+            <p class="muted">Keep a 7-day tracking streak</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/profile.js"></script>
+</body>
+
+</html>

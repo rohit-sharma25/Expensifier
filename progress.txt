@@ -1,0 +1,23 @@
+# Task: Enhance Bank SMS Parsing Feature
+
+## Completed:
+- Initial "Magic SMS Paste" UI in `expense.html`
+- Basic Regex parser in `js/sms-parser.js`
+- Data mapping in `expense.js`
+
+## Current Work:
+- [x] Improve Regex patterns in `js/sms-parser.js` for better accuracy (SBI, PhonePe, Google Pay, etc.)
+- [x] Implement Merchant-to-Category mapping in `js/sms-parser.js`
+- [x] Add AI-powered fallback parsing in `js/ai-service.js`
+- [x] Update `expense.js` to use AI fallback if Regex fails
+- [x] Auto-populate Category field and trigger sub-category update
+
+## Refined (j5c4r):
+- [x] Restored Regex parsing as primary method in `js/sms-parser.js`
+- [x] Implemented proper AI fallback mechanism
+- [x] Added Merchant-to-Category mapping for Regex parser
+- [x] Updated `expense.js` to populate form instead of auto-adding (as per PRD)
+- [x] Ensured form population triggers category/subcategory logic and smooth scrolling
+
+----------
+ralph-done-j5c4r

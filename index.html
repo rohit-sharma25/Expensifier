@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EXPENSIFIER - Smart Expense Tracking</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-content animate-fade-in-down">
+        <div class="brand">
+          <div class="brand-logo">
+            <img src="img/logo.jpg">
+          </div>
+          <div class="brand-text">
+            <h1>EXPENSIFIER</h1>
+            <p>Track all of expenses and transactions</p>
+          </div>
+        </div>
+
+        <nav class="header-nav" style="display: flex; gap: 24px; margin-left: 40px;">
+          <a href="index.html" class="nav-link active"
+            style="text-decoration: none; color: var(--primary); font-weight: 700; border-bottom: 2px solid var(--primary); padding-bottom: 4px;">Dashboard</a>
+          <a href="invest.html" class="nav-link"
+            style="text-decoration: none; color: var(--muted); font-weight: 600; transition: color 0.2s;">Investments</a>
+          <a href="expense.html" class="nav-link"
+            style="text-decoration: none; color: var(--muted); font-weight: 600; transition: color 0.2s;">Expenses</a>
+        </nav>
+
+        <div class="user-section" id="auth-section">
+          <div id="logged-out-view" class="row">
+            <button id="login-btn" class="btn btn-primary">Sign in with Google</button>
+            <button id="skip-btn" class="btn btn-secondary">Use Offline</button>
+          </div>
+
+          <div id="user-info" class="user-section hidden">
+            <div class="user-info">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span id="user-name" class="user-name"></span>
+                <span id="header-level-badge"
+                  style="background: #FFD700; color: #000; font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 10px; display: none;">LVL
+                  0</span>
+              </div>
+            </div>
+            <a href="profile.html" style="margin-right: 12px;">
+              <img id="user-photo" class="user-photo" src="" alt="Profile"
+                style="border: 2px solid var(--primary); padding: 2px;" />
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Greeting Section -->
+    <section class="greeting-section animate-fade-in-up">
+      <div class="greeting-content">
+        <div class="greeting-header">
+          <div class="greeting-text">
+            <h2>Hi, <span id="greeting-name">Ananya</span> 👋</h2>
+            <p>Track all of expenses and transactions</p>
+          </div>
+          <div class="greeting-time" id="current-time">
+            <span>🕐</span>
+            <span id="time-display"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Multi-State Banner -->
+    <div id="ai-smart-dashboard" class="animate-fade-in-up" style="margin-bottom: 24px; display: none;">
+      <div class="insight-banner">
+        <span class="insight-icon">💼</span>
+        <div class="insight-text">
+          <div
+            style="font-size: 0.65rem; text-transform: uppercase; font-weight: 800; color: #5B6CF2; margin-bottom: 2px;">
+            AI WEALTH INTELLIGENCE</div>
+          <div id="ai-dashboard-insight">
+            <span class="typing-dots">Analyzing your portfolio and behavior...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GEN-3 Financial Intelligence Grid -->
+    <div class="dashboard-grid animate-fade-in-up stagger-1">
+      <!-- Account Balance Card -->
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <div class="stat-card-icon">💳</div>
+          <span class="stat-card-badge" style="background: rgba(0,0,0,0.05);">CASH</span>
+        </div>
+        <div class="stat-card-body">
+          <h3>Available Cash</h3>
+          <div class="stat-card-value" id="account-balance"
+            style="color: #000000; background: none; -webkit-text-fill-color: unset;">₹0.00</div>
+          <div id="health-status-container" style="margin-top: 8px;">
+            <span id="health-status" class="health-status health-stable">STABLE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial Health Card -->
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <div class="stat-card-icon">🛡️</div>
+          <span class="stat-card-badge"
+            style="background: rgba(91, 108, 242, 0.1); color: var(--primary);">HEALTH</span>
+        </div>
+        <div class="stat-card-body">
+          <h3>Safety Level</h3>
+          <div class="stat-card-value" id="risk-label"
+            style="color: #000000; background: none; -webkit-text-fill-color: unset;">Low Risk</div>
+          <div class="stat-card-trend">
+            <span id="risk-score">0</span><span>/100 score</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Burn Rate Card -->
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <div class="stat-card-icon">🔥</div>
+          <span class="stat-card-badge" style="background: rgba(239, 68, 68, 0.1); color: #EF4444;">BURN RATE</span>
+        </div>
+        <div class="stat-card-body">
+          <h3>Daily Spending</h3>
+          <div class="stat-card-value" id="burn-rate"
+            style="color: #000000; background: none; -webkit-text-fill-color: unset;">₹0</div>
+          <div class="stat-card-trend">
+            <div style="width: 100%; background: rgba(0,0,0,0.05); height: 4px; border-radius: 99px; margin-top: 8px;">
+              <div id="burn-bar" style="width: 0%; height: 100%; background: #EF4444; border-radius: 99px;"></div>
+            </div>
+            <span id="burn-text"
+              style="font-size: 0.7rem; color: var(--muted); margin-top: 4px; display: block;">Projected: ₹0
+              end-of-month</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Metrics Grid -->
+    <div class="dashboard-grid animate-fade-in-up stagger-2" style="margin-top: -12px;">
+      <!-- Monthly Expenses Card -->
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <div class="stat-card-icon">📊</div>
+          <span class="stat-card-badge" style="background: rgba(239, 68, 68, 0.15); color: #EF4444;">EXPENSES</span>
+        </div>
+        <div class="stat-card-body">
+          <h3>Monthly Expenses</h3>
+          <div class="stat-card-value"
+            style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;"
+            id="monthly-expenses">₹0.00</div>
+          <div class="stat-card-trend" id="expense-trend">
+            <span>📉</span>
+            <span>5% less than last month</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Investment Card -->
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <div class="stat-card-icon">📈</div>
+          <span class="stat-card-badge" style="background: rgba(124, 58, 237, 0.15); color: #7C3AED;">INVESTMENT</span>
+        </div>
+        <div class="stat-card-body">
+          <h3>Total Investment</h3>
+          <div class="stat-card-value"
+            style="background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;"
+            id="total-investment">₹0.00</div>
+          <div class="stat-card-trend trend-up" id="investment-trend">
+            <span>↑</span>
+            <span>+8% growth</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Income Card -->
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <div class="stat-card-icon">💰</div>
+          <span class="stat-card-badge" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">INCOME</span>
+        </div>
+        <div class="stat-card-body">
+          <h3>Monthly Income</h3>
+          <div class="stat-card-value"
+            style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;"
+            id="monthly-income">₹0.00</div>
+          <div class="stat-card-trend trend-up">
+            <span>🚀</span>
+            <span>Total earnings this month</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Goal Card -->
+      <div class="stat-card">
+        <div class="stat-card-header">
+          <div class="stat-card-icon">🎯</div>
+          <span class="stat-card-badge" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">GOAL</span>
+        </div>
+        <div class="stat-card-body">
+          <!-- Goal Display -->
+          <div id="goal-display">
+            <h3 id="goal-name-display">No Goal Set</h3>
+            <div class="stat-card-value"
+              style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;"
+              id="goal-amount-display">₹0.00</div>
+            <div class="stat-card-trend" id="goal-progress-display">
+              <div
+                style="width: 100%; background: rgba(0,0,0,0.1); height: 6px; border-radius: 99px; margin-top: 8px; overflow: hidden;">
+                <div id="goal-progress-bar"
+                  style="width: 0%; height: 100%; background: linear-gradient(90deg, #10B981 0%, #059669 100%); border-radius: 99px;">
+                </div>
+              </div>
+              <span id="goal-progress-text" style="margin-top: 4px; font-size: 0.8rem;">0% Complete</span>
+            </div>
+            <button id="edit-goal-btn" class="btn btn-secondary"
+              style="margin-top: 12px; width: 100%; font-size: 0.85rem;">
+              ✏️ Edit Goal
+            </button>
+          </div>
+
+          <!-- Goal Edit Form (Hidden by default) -->
+          <div id="goal-edit-form" class="hidden">
+            <div style="margin-bottom: 12px;">
+              <label
+                style="display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; font-weight: 600;">GOAL
+                NAME</label>
+              <input type="text" id="goal-name-input" placeholder="e.g., iPhone 17 Pro"
+                style="width: 100%; padding: 8px 12px; font-size: 0.9rem;" />
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label
+                style="display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; font-weight: 600;">TARGET
+                AMOUNT (₹)</label>
+              <input type="number" id="goal-amount-input" placeholder="0.00" step="0.01"
+                style="width: 100%; padding: 8px 12px; font-size: 0.9rem;" />
+            </div>
+            <div style="margin-bottom: 12px;">
+              <label
+                style="display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; font-weight: 600;">CURRENT
+                SAVINGS (₹)</label>
+              <input type="number" id="goal-saved-input" placeholder="0.00" step="0.01"
+                style="width: 100%; padding: 8px 12px; font-size: 0.9rem;" />
+            </div>
+            <div class="row" style="gap: 8px;">
+              <button id="save-goal-btn" class="btn btn-primary" style="flex: 1; font-size: 0.85rem;">
+                💾 Save Goal
+              </button>
+              <button id="cancel-goal-btn" class="btn btn-ghost" style="font-size: 0.85rem;">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section animate-fade-in-up stagger-2">
+      <!-- Monthly Expenses Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">📊 Monthly Statistics</h3>
+          <div class="chart-filter">
+            <button class="filter-btn active" data-period="6m">6 Month</button>
+            <button class="filter-btn" data-period="1y">1 Year</button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 20px; align-items: stretch; min-height: 300px;">
+          <div class="chart-filter" id="monthly-chart-type-filter"
+            style="display: flex; flex-direction: column; background: rgba(0,0,0,0.05); border-radius:12px; padding: 6px; gap: 8px;">
+            <button class="filter-btn active" data-type="expense"
+              style="padding: 12px; font-size: 0.8rem; writing-mode: vertical-lr; transform: rotate(180deg); flex: 1;">Expenses</button>
+            <button class="filter-btn" data-type="income"
+              style="padding: 12px; font-size: 0.8rem; writing-mode: vertical-lr; transform: rotate(180deg); flex: 1;">Income</button>
+          </div>
+          <div class="chart-container" style="flex: 1; height: 300px;">
+            <canvas id="monthly-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Category Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">🎯 Category Breakdown</h3>
+          <div class="chart-filter">
+            <button class="filter-btn active">Overview</button>
+          </div>
+        </div>
+        <div class="chart-container" style="height: 250px;">
+          <canvas id="category-chart"></canvas>
+        </div>
+        <div class="category-list" id="category-list">
+          <!-- Categories injected here -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Recent Expenses Section -->
+    <section class="expenses-section animate-fade-in-up stagger-3">
+      <div class="section-header">
+        <h3 class="section-title" id="recent-transactions-title">📋 Recent Expenses</h3>
+        <div class="row">
+          <button class="filter-btn" data-filter="all">All</button>
+          <button class="filter-btn active" data-filter="recent">Recent</button>
+          <a href="expense.html" class="btn btn-primary">+ Add Entry</a>
+        </div>
+      </div>
+
+      <table class="expenses-table">
+        <thead>
+          <tr>
+            <th>S.N</th>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Sub Category</th>
+            <th>Date</th>
+            <th>Mode</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="recent-expenses-body">
+          <!-- Expenses will be dynamically inserted -->
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Bill & Subscription Section -->
+    <section class="expenses-section animate-fade-in-up stagger-4">
+      <div class="section-header">
+        <h3 class="section-title">💳 Bill & Subscription</h3>
+        <button class="btn btn-secondary">View All</button>
+      </div>
+
+      <div class="dashboard-grid" id="subscriptions-grid">
+        <!-- Subscriptions will be dynamically inserted -->
+      </div>
+    </section>
+  </main>
+
+  <!-- THE NEW RADIANT AI CHAT UI -->
+  <div id="ai-chat-fab" class="ai-fab">
+    <span>🤖</span>
+  </div>
+
+  <div id="ai-chat-popup" class="ai-chat-popup hidden">
+    <div class="ai-chat-header">
+      <div class="ai-chat-title">
+        <span>🤖</span>
+        <span>Finance AI</span>
+      </div>
+      <button id="ai-chat-close" class="btn-icon"
+        style="background:none; border:none; color:white; cursor:pointer; font-size:1.5rem;">×</button>
+    </div>
+    <div id="ai-chat-body" class="ai-chat-body">
+      <div class="msg-ai">Hello! I'm your new financial advisor. How can I help you today?</div>
+    </div>
+    <div class="ai-chat-footer">
+      <input type="text" id="ai-chat-input" class="ai-chat-input" placeholder="Type your question..."
+        autocomplete="off">
+      <button id="ai-chat-send" class="ai-chat-send">🚀</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { AuthService } from './js/auth-service.js';
+    import { DBService } from './js/db-service.js';
+    import { AIService } from './js/ai-service.js';
+    import { FinancialEngine } from './js/financial-engine.js';
+    import { NotificationService } from './js/notification-service.js';
+    import { calculateBudgetTrajectory, analyzeSpendingByCategory } from './js/analytics.js';
+    import { createTrajectoryChart, destroyChart } from './js/chart-utils.js';
+
+    // DOM Elements
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const skipBtn = document.getElementById('skip-btn');
+    const loggedOutView = document.getElementById('logged-out-view');
+    const userInfo = document.getElementById('user-info');
+    const userName = document.getElementById('user-name');
+    const userEmail = document.getElementById('user-email');
+    const userPhoto = document.getElementById('user-photo');
+    const greetingName = document.getElementById('greeting-name');
+
+    // AI Chat elements
+    const fab = document.getElementById('ai-chat-fab');
+    const popup = document.getElementById('ai-chat-popup');
+    const closeBtn = document.getElementById('ai-chat-close');
+    const chatInput = document.getElementById('ai-chat-input');
+    const chatSend = document.getElementById('ai-chat-send');
+    const chatBody = document.getElementById('ai-chat-body');
+
+    let contextData = {
+      finances: [],
+      budget: null,
+      engineState: { state: {}, risks: {}, behavior: {} }
+    };
+    let monthlyChart = null;
+    let categoryChart = null;
+    let lastAiUpdate = 0;
+    let currentUser = null;
+    let currentChartType = 'expense';
+    let currentFilter = 'recent';
+
+    // Escape HTML to prevent injection when inserting strings into innerHTML
+    function escapeHTML(str) {
+      if (str === null || typeof str === 'undefined') return '';
+      return String(str).replace(/[&<>"']/g, function (s) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[s];
+      });
+    }
+
+    // Update time
+    function updateTime() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      const dateStr = now.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+      document.getElementById('time-display').textContent = `${timeStr} | ${dateStr}`;
+    }
+    updateTime();
+    setInterval(updateTime, 60000);
+
+    // Auth handling
+    AuthService.onUserChange(async (user) => {
+      try {
+        currentUser = user;
+        if (user) {
+          // if we were previously in local-only mode, disable it now that auth succeeded
+          if (AuthService.isLocalOnly()) {
+            AuthService.setLocalOnly(false);
+            console.log('🔁 Exiting local-only mode after login');
+          }
+
+          userInfo.classList.remove('hidden');
+          loggedOutView.classList.add('hidden');
+          userName.textContent = user.displayName || "Unknown User";
+          if (userEmail) userEmail.textContent = user.email || "";
+          userPhoto.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=5B6CF2&color=fff`;
+
+          const firstName = user.displayName ? user.displayName.split(' ')[0] : (user.email ? user.email.split('@')[0] : "User");
+          greetingName.textContent = firstName;
+
+          // 🔔 Request notification permission early (before any alerts are triggered)
+          if (NotificationService.isSupported() && Notification.permission === 'default') {
+            NotificationService.requestPermission()
+              .then(permission => {
+                console.log('📢 Notification permission:', permission);
+                if (permission === 'granted') {
+                  NotificationService.show('Dashboard Alerts Active', 'You\'ll receive spending and investment notifications.');
+                }
+              })
+              .catch(err => console.warn('⚠️ Notification permission request failed:', err));
+          }
+
+          await loadData(user.uid);
+          updateHeaderLevel();
+        } else {
+          const isLocal = AuthService.isLocalOnly();
+          if (isLocal) {
+            userInfo.classList.remove('hidden');
+            loggedOutView.classList.add('hidden');
+            userName.textContent = "Guest User";
+            userEmail.textContent = "Local Mode";
+            userPhoto.src = "https://ui-avatars.com/api/?name=Guest&background=5B6CF2&color=fff";
+            greetingName.textContent = "Guest";
+            await loadData(null);
+          } else {
+            loggedOutView.classList.remove('hidden');
+            userInfo.classList.add('hidden');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Auth state change error:', error);
+        loggedOutView.classList.remove('hidden');
+        userInfo.classList.add('hidden');
+      }
+    });
+
+    async function loadData(uid) {
+      try {
+        // Fetch initial data first
+        console.log('📥 Loading data for user:', uid || 'Local');
+        const finances = await DBService.fetchData(uid, 'finances');
+        const budgetData = await DBService.fetchData(uid, 'monthlyBudget');
+        const engineData = await DBService.fetchData(uid, 'engineState');
+        const goalsData = await DBService.fetchData(uid, 'goals');
+        
+        contextData.finances = finances;
+        contextData.budget = budgetData.find(d => d.id === 'settings')?.value || null;
+        
+        // Initial render
+        renderDashboard(contextData.finances, contextData.budget);
+        renderCharts(contextData.finances);
+        renderRecentExpenses(contextData.finances, currentFilter, currentChartType);
+        renderSubscriptions(contextData.finances);
+        processProactiveAlerts(contextData.finances, contextData.budget);
+        
+        const savedGoal = goalsData.find(g => g.id === 'userGoal');
+        updateGoalDisplay(savedGoal || null);
+
+        console.log('✅ Initial data loaded:', { finances: finances.length, budget: !!contextData.budget });
+
+        // Set up real-time subscriptions for automatic updates
+        DBService.subscribe(uid, 'finances', async (data) => {
+          try {
+            contextData.finances = data;
+
+            // Calculate and Save Engine State
+            if (contextData.budget) {
+              const state = FinancialEngine.calculateState(data, contextData.budget);
+              const risks = FinancialEngine.runRiskEngine(state, contextData.budget);
+              const behavior = FinancialEngine.runBehaviorModel(data);
+
+              // Save to Firebase
+              await DBService.saveData(uid, 'engineState', 'financialState', { id: 'financialState', ...state });
+              await DBService.saveData(uid, 'engineState', 'riskSignals', { id: 'riskSignals', ...risks });
+              await DBService.saveData(uid, 'engineState', 'behaviorProfile', { id: 'behaviorProfile', ...behavior });
+            }
+
+            renderDashboard(contextData.finances, contextData.budget);
+            renderCharts(contextData.finances);
+            renderRecentExpenses(contextData.finances, currentFilter, currentChartType);
+            renderSubscriptions(contextData.finances);
+            processProactiveAlerts(contextData.finances, contextData.budget);
+          } catch (err) {
+            console.error('❌ Error processing finances subscription:', err);
+          }
+        });
+
+        DBService.subscribe(uid, 'monthlyBudget', async (data) => {
+          try {
+            const settings = data.find(d => d.id === 'settings');
+            contextData.budget = settings ? settings.value : null;
+
+            // Recalculate engine state when budget changes
+            if (contextData.budget && contextData.finances.length > 0) {
+              const state = FinancialEngine.calculateState(contextData.finances, contextData.budget);
+              const risks = FinancialEngine.runRiskEngine(state, contextData.budget);
+              const behavior = FinancialEngine.runBehaviorModel(contextData.finances);
+
+              await DBService.saveData(uid, 'engineState', 'financialState', { id: 'financialState', ...state });
+              await DBService.saveData(uid, 'engineState', 'riskSignals', { id: 'riskSignals', ...risks });
+              await DBService.saveData(uid, 'engineState', 'behaviorProfile', { id: 'behaviorProfile', ...behavior });
+            }
+
+            renderDashboard(contextData.finances, contextData.budget);
+          } catch (err) {
+            console.error('❌ Error processing budget subscription:', err);
+          }
+        });
+
+        // GEN-3 Real-time Engine Updates
+        DBService.subscribe(uid, 'engineState', (data) => {
+          try {
+            const state = data.find(d => d.id === 'financialState');
+            const risks = data.find(d => d.id === 'riskSignals');
+            const behavior = data.find(d => d.id === 'behaviorProfile');
+
+            if (state) updateBurnRateUI(state);
+            if (risks) updateHealthUI(risks);
+            if (state && risks && behavior) {
+              updateAISmartDashboard(state, risks, behavior);
+              contextData.engineState = { state, risks, behavior };
+            }
+          } catch (err) {
+            console.error('❌ Error processing engine state subscription:', err);
+          }
+        });
+
+        DBService.subscribe(uid, 'goals', (data) => {
+          try {
+            const savedGoal = data.find(g => g.id === 'userGoal');
+            updateGoalDisplay(savedGoal || null);
+          } catch (err) {
+            console.error('❌ Error processing goals subscription:', err);
+          }
+        });
+
+        // Start AI Insight Analysis
+        lastAiUpdate = 0; // Trigger immediately
+      } catch (error) {
+        console.error('❌ Fatal error in loadData:', error);
+        alert('⚠️ Failed to load data. Please check console and try refreshing.');
+      }
+    }
+
+
+    // Goal Management Functions
+    function updateGoalDisplay(goal) {
+      if (!goal || !goal.name || !goal.targetAmount) {
+        document.getElementById('goal-name-display').textContent = 'No Goal Set';
+        document.getElementById('goal-amount-display').textContent = '₹0.00';
+        document.getElementById('goal-progress-bar').style.width = '0%';
+        document.getElementById('goal-progress-text').textContent = '0% Complete';
+        return;
+      }
+
+      const savedAmount = goal.savedAmount || 0;
+      const targetAmount = goal.targetAmount || 0;
+      const progress = targetAmount > 0 ? Math.min((savedAmount / targetAmount) * 100, 100) : 0;
+
+      document.getElementById('goal-name-display').textContent = goal.name;
+      document.getElementById('goal-amount-display').textContent = `₹${targetAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      document.getElementById('goal-progress-bar').style.width = `${progress}%`;
+      document.getElementById('goal-progress-text').textContent = `${progress.toFixed(0)}% Complete (₹${savedAmount.toLocaleString('en-IN')} saved)`;
+    }
+
+    // Goal Edit/Save Handlers (guarded)
+    const editGoalBtn = document.getElementById('edit-goal-btn');
+    if (editGoalBtn) editGoalBtn.addEventListener('click', async () => {
+      const goalData = await DBService.fetchData(AuthService.isLocalOnly() ? null : currentUser?.uid, 'goals');
+      const savedGoal = goalData.find(g => g.id === 'userGoal');
+
+      if (savedGoal) {
+        const nameInput = document.getElementById('goal-name-input');
+        const targetInput = document.getElementById('goal-amount-input');
+        const savedInput = document.getElementById('goal-saved-input');
+        if (nameInput) nameInput.value = savedGoal.name || '';
+        if (targetInput) targetInput.value = savedGoal.targetAmount || '';
+        if (savedInput) savedInput.value = savedGoal.savedAmount || '';
+      }
+
+      const display = document.getElementById('goal-display');
+      const form = document.getElementById('goal-edit-form');
+      if (display) display.classList.add('hidden');
+      if (form) form.classList.remove('hidden');
+    });
+
+    const cancelGoalBtn = document.getElementById('cancel-goal-btn');
+    if (cancelGoalBtn) cancelGoalBtn.addEventListener('click', () => {
+      const form = document.getElementById('goal-edit-form');
+      const display = document.getElementById('goal-display');
+      if (form) form.classList.add('hidden');
+      if (display) display.classList.remove('hidden');
+    });
+
+    const saveGoalBtn = document.getElementById('save-goal-btn');
+    if (saveGoalBtn) saveGoalBtn.addEventListener('click', async () => {
+      const nameEl = document.getElementById('goal-name-input');
+      const targetEl = document.getElementById('goal-amount-input');
+      const savedEl = document.getElementById('goal-saved-input');
+      const name = nameEl ? nameEl.value.trim() : '';
+      const targetAmount = targetEl ? parseFloat(targetEl.value) || 0 : 0;
+      const savedAmount = savedEl ? parseFloat(savedEl.value) || 0 : 0;
+
+      if (!name || targetAmount <= 0) {
+        alert('Please enter a valid goal name and target amount');
+        return;
+      }
+
+      const goalData = {
+        id: 'userGoal',
+        name,
+        targetAmount,
+        savedAmount
+      };
+
+      const uid = AuthService.isLocalOnly() ? null : currentUser?.uid;
+      await DBService.saveData(uid, 'goals', 'userGoal', goalData);
+
+      updateGoalDisplay(goalData);
+      const form = document.getElementById('goal-edit-form');
+      const display = document.getElementById('goal-display');
+      if (form) form.classList.add('hidden');
+      if (display) display.classList.remove('hidden');
+    });
+
+    function renderDashboard(finances, budget) {
+      const today = new Date();
+      const currentMonth = today.toISOString().slice(0, 7);
+
+      // Calculate monthly expenses
+      const monthExpenses = finances
+        .filter(f => f.type === 'expense' && f.dateISO.startsWith(currentMonth))
+        .reduce((sum, f) => sum + f.amount, 0);
+
+      // Calculate monthly income
+      const monthIncome = finances
+        .filter(f => f.type === 'income' && f.dateISO.startsWith(currentMonth))
+        .reduce((sum, f) => sum + f.amount, 0);
+
+      // Calculate total investment
+      const totalInvestment = finances
+        .filter(f => f.category === 'Investment')
+        .reduce((sum, f) => sum + f.amount, 0);
+
+      // Update dashboard with defensive checks
+      const balanceEl = document.getElementById('account-balance');
+      const expensesEl = document.getElementById('monthly-expenses');
+      const incomeEl = document.getElementById('monthly-income');
+      const investmentEl = document.getElementById('total-investment');
+
+      if (balanceEl) balanceEl.textContent = `₹${(monthIncome - monthExpenses).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (expensesEl) expensesEl.textContent = `₹${monthExpenses.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (incomeEl) incomeEl.textContent = `₹${monthIncome.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      if (investmentEl) investmentEl.textContent = `₹${totalInvestment.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function renderCharts(finances) {
+      const activePeriod = document.querySelector('[data-period].active')?.dataset.period || '6m';
+      renderMonthlyChart(finances, activePeriod === '1y' ? 12 : 6, currentChartType);
+      renderCategoryChart(finances, currentChartType);
+    }
+
+
+    function updateHealthUI(risks) {
+      if (!risks || typeof risks.riskScore === 'undefined') return;
+      const scoreEl = document.getElementById('risk-score');
+      const labelEl = document.getElementById('risk-label');
+      const statusEl = document.getElementById('health-status');
+
+      if (!scoreEl) return;
+
+      scoreEl.textContent = risks.riskScore;
+
+      let label = 'Low';
+      let statusClass = 'health-stable';
+      if (risks.riskScore > 70) { label = 'High'; statusClass = 'health-critical'; }
+      else if (risks.riskScore > 30) { label = 'Moderate'; statusClass = 'health-warning'; }
+
+      labelEl.textContent = label;
+      statusEl.textContent = label.toUpperCase();
+      statusEl.className = `health-status ${statusClass}`;
+    }
+
+    function updateBurnRateUI(state) {
+      if (!state || typeof state.burnRatePerDay === 'undefined') return;
+      const burnEl = document.getElementById('burn-rate');
+      const barEl = document.getElementById('burn-bar');
+      const textEl = document.getElementById('burn-text');
+
+      if (!burnEl) return;
+
+      burnEl.textContent = `₹${Math.round(state.burnRatePerDay)}`;
+      const velocity = Math.min(100, (state.monthExpenses / (contextData.budget || state.monthExpenses || 1)) * 100);
+      barEl.style.width = `${velocity}%`;
+      textEl.textContent = `Projected: ₹${Math.round(state.projectedEndBalance)} end-of-month.`;
+    }
+
+    async function updateAISmartDashboard(state, risks, behavior) {
+      const dashboard = document.getElementById('ai-smart-dashboard');
+      const insightEl = document.getElementById('ai-dashboard-insight');
+      if (!dashboard || !insightEl) return;
+
+      if (!contextData.budget) {
+        dashboard.style.display = 'none';
+        return;
+      }
+
+      dashboard.style.display = 'block';
+
+      // Throttle AI updates
+      const now = Date.now();
+      if (now - lastAiUpdate < 30000) return;
+      lastAiUpdate = now;
+
+      try {
+        const insight = await AIService.generateDashboardInsight({
+          budget: contextData.budget,
+          state,
+          risks,
+          behavior
+        });
+
+        if (insight) {
+          insightEl.innerHTML = escapeHTML(insight);
+        }
+      } catch (err) {
+        console.error("Dashboard AI Insight Error:", err);
+      }
+    }
+
+    function processProactiveAlerts(finances, budget) {
+      if (!budget) return;
+
+      const alerts = FinancialEngine.getAlerts(finances, budget);
+
+      alerts.forEach(alert => {
+        const alertKey = `last_alert_${alert.type}_${alert.message.length}`;
+        const lastShown = sessionStorage.getItem(alertKey);
+        const now = Date.now();
+
+        if (!lastShown || (now - parseInt(lastShown)) > (120 * 60 * 1000)) {
+          NotificationService.show(alert.title, alert.message);
+          sessionStorage.setItem(alertKey, now.toString());
+
+          const chatBody = document.getElementById('ai-chat-body');
+          if (chatBody) {
+            AIService.appendMessage(chatBody, `<strong>${alert.title}</strong><br>${alert.message}`, 'ai');
+          }
+        }
+      });
+    }
+
+    function renderMonthlyChart(finances, numMonths = 6, type = 'expense') {
+      const ctx = document.getElementById('monthly-chart');
+      if (!ctx) return;
+
+      // Get period data
+      const months = [];
+      const data = [];
+      for (let i = numMonths - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        const monthStr = d.toISOString().slice(0, 7);
+        const monthName = d.toLocaleDateString('en-IN', { month: 'short' });
+        months.push(monthName);
+
+        const monthTotal = finances
+          .filter(f => f.type === type && f.dateISO.startsWith(monthStr))
+          .reduce((sum, f) => sum + f.amount, 0);
+        data.push(monthTotal);
+      }
+
+      const chartLabel = type === 'expense' ? 'Expenses' : 'Income';
+      const chartColor = type === 'expense' ? 'rgba(239, 68, 68, 0.8)' : 'rgba(16, 185, 129, 0.8)';
+      const chartBorder = type === 'expense' ? '#EF4444' : '#10B981';
+
+      if (monthlyChart) monthlyChart.destroy();
+
+      monthlyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [{
+            label: chartLabel,
+            data: data,
+            backgroundColor: chartColor,
+            borderColor: chartBorder,
+            borderWidth: 2,
+            borderRadius: 8,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(17, 18, 26, 0.95)',
+              padding: 12,
+              titleColor: '#F9FAFB',
+              bodyColor: '#E5E7EB',
+              borderColor: 'rgba(91, 108, 242, 0.3)',
+              borderWidth: 1,
+              callbacks: {
+                label: (context) => `₹${context.parsed.y.toLocaleString('en-IN')}`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#9CA3AF' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#9CA3AF' }
+            }
+          }
+        }
+      });
+    }
+
+    function renderCategoryChart(finances, type = 'expense') {
+      const ctx = document.getElementById('category-chart');
+      if (!ctx) return;
+
+      // Calculate category totals
+      const categories = {};
+      const categoryColors = {
+        'Food & Grocery': '#10B981',
+        'Investment': '#8B5CF6',
+        'Shopping': '#F59E0B',
+        'Traveling': '#06B6D4',
+        'Miscellaneous': '#6B7280',
+        'Bill & Subscription': '#EF4444',
+        'Peoples': '#3B82F6',
+        'LLM Models': '#8B5CF6'
+      };
+
+      finances
+        .filter(f => f.type === type)
+        .forEach(f => {
+          const cat = f.category || (type === 'income' ? 'Salary/Income' : 'Miscellaneous');
+          categories[cat] = (categories[cat] || 0) + f.amount;
+        });
+
+      const labels = Object.keys(categories);
+      const data = Object.values(categories);
+
+      // Dynamic color generation for unknown categories
+      const colors = labels.map(l => categoryColors[l] || `hsl(${Math.random() * 360}, 70%, 50%)`);
+
+      if (categoryChart) categoryChart.destroy();
+
+      categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: colors,
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(17, 18, 26, 0.95)',
+              padding: 12,
+              titleColor: '#F9FAFB',
+              bodyColor: '#E5E7EB',
+              borderColor: 'rgba(91, 108, 242, 0.3)',
+              borderWidth: 1,
+              callbacks: {
+                label: (context) => `${context.label}: ₹${context.parsed.toLocaleString('en-IN')}`
+              }
+            }
+          },
+          cutout: '70%'
+        }
+      });
+
+      // Render category list
+      const categoryList = document.getElementById('category-list');
+      categoryList.innerHTML = labels.map((label, i) => `
+        <div class="category-item">
+          <div class="category-color" style="background: ${colors[i]}"></div>
+          <div class="category-info">
+            <span class="category-name">${escapeHTML(label)}</span>
+            <span class="category-amount">₹${escapeHTML(String(data[i].toLocaleString('en-IN')))}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderRecentExpenses(finances, filter = 'all', type = 'expense') {
+      const tbody = document.getElementById('recent-expenses-body');
+      if (!tbody) return;
+
+      tbody.innerHTML = '';
+
+      if (!finances || finances.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted);">No ${type} entries yet</td></tr>`;
+        return;
+      }
+
+      let filteredExpenses = finances
+        .filter(f => f.type === type);
+
+      if (filteredExpenses.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted);">No ${type} entries yet</td></tr>`;
+        return;
+      }
+
+      if (filter === 'recent') {
+        filteredExpenses = filteredExpenses
+          .sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO))
+          .slice(0, 5);
+      } else {
+        filteredExpenses = filteredExpenses
+          .sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
+      }
+
+      const categoryEmoji = {
+        'Food & Grocery': '🍔',
+        'Investment': '📈',
+        'Shopping': '🛍️',
+        'Traveling': '✈️',
+        'Miscellaneous': '📦',
+        'Bill & Subscription': '💳',
+        'Peoples': '👥',
+        'LLM Models': '🤖'
+      };
+
+      const amountColor = type === 'expense' ? 'var(--danger)' : 'var(--success)';
+      const deleteBg = type === 'expense' ? 'rgba(239,68,68,0.05)' : 'rgba(16,185,129,0.05)';
+      const deleteColor = type === 'expense' ? '#EF4444' : '#10B981';
+      const deleteBorder = type === 'expense' ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)';
+
+      filteredExpenses.forEach((expense, index) => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid var(--border)';
+
+        const emoji = categoryEmoji[expense.category] || (type === 'income' ? '💰' : '💸');
+
+        const safeId = escapeHTML(expense.id);
+        const safeAmount = escapeHTML(String(Number(expense.amount || 0).toFixed(2)));
+        const safeCategory = escapeHTML(expense.category || (type === 'income' ? 'Income' : 'N/A'));
+        const safeSub = escapeHTML(expense.subCategory || '-');
+        const safeDate = escapeHTML(expense.dateISO || '');
+        const safeMode = escapeHTML(expense.mode || (type === 'income' ? 'Direct' : 'Cash'));
+        const safeDesc = escapeHTML(expense.desc || '');
+
+        tr.innerHTML = `
+          <td style="padding:12px; color:var(--muted); font-size:0.85rem;">${index + 1}</td>
+          <td style="padding:12px;">
+            <span style="font-weight:700; color:${amountColor}; font-size:0.95rem;">${type === 'income' ? '+' : '-'} ₹${safeAmount}</span>
+          </td>
+          <td style="padding:12px; color:var(--text); font-size:0.85rem;">${emoji} ${safeCategory}</td>
+          <td style="padding:12px; color:var(--muted); font-size:0.85rem;">${safeSub}</td>
+          <td style="padding:12px; color:var(--muted); font-size:0.85rem;">${safeDate}</td>
+          <td style="padding:12px;">
+            <span style="padding: 4px 10px; background: rgba(0,0,0,0.05); border-radius: 99px; font-size: 0.75rem; font-weight:600; color:var(--primary);">
+              ${safeMode}
+            </span>
+          </td>
+          <td style="padding:12px; color:var(--text); font-size:0.85rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            ${safeDesc}
+          </td>
+          <td style="padding:12px;">
+            <button class="btn-delete" data-id="${safeId}" style="background:${deleteBg}; color:${deleteColor}; border:1px solid ${deleteBorder}; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:700; transition: all 0.2s;">
+              Delete
+            </button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+      // Add event listeners to delete buttons
+      tbody.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', async function () {
+          const id = this.getAttribute('data-id');
+          if (confirm('Are you sure you want to delete this expense?')) {
+            const uid = AuthService.isLocalOnly() ? null : currentUser?.uid;
+            await DBService.deleteData(uid, 'finances', id);
+          }
+        });
+
+        // Hover effect
+        btn.addEventListener('mouseenter', function () {
+          this.style.background = '#EF4444';
+          this.style.color = '#FFFFFF';
+        });
+        btn.addEventListener('mouseleave', function () {
+          this.style.background = 'rgba(239,68,68,0.1)';
+          this.style.color = '#EF4444';
+        });
+      });
+    }
+
+    function renderSubscriptions(finances) {
+      const grid = document.getElementById('subscriptions-grid');
+      const subscriptions = finances
+        .filter(f => f.category === 'Bill & Subscription')
+        .slice(0, 4);
+
+      const icons = {
+        'Netflix': '🎬',
+        'Spotify': '🎵',
+        'WiFi': '📡',
+        'Electricity': '⚡',
+        'LLMs': '🤖'
+      };
+
+      if (grid) {
+        grid.innerHTML = subscriptions.map(sub => {
+          const title = escapeHTML(sub.subCategory || sub.desc || 'Subscription');
+          const amount = escapeHTML(String((sub.amount || 0).toLocaleString('en-IN')));
+          const date = sub.dateISO ? escapeHTML(new Date(sub.dateISO).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })) : '';
+          const icon = icons[sub.subCategory] || '💳';
+          return `
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <div class="stat-card-icon">${icon}</div>
+                <span class="stat-card-badge" style="background: rgba(239, 68, 68, 0.15); color: #EF4444;">ACTIVE</span>
+              </div>
+              <div class="stat-card-body">
+                <h3>${title}</h3>
+                <div class="stat-card-value" style="font-size: 1.5rem; color: #000000; background: none; -webkit-text-fill-color: unset;">₹${amount}</div>
+                <div class="stat-card-trend">
+                  <span style="font-size: 0.8rem; color: var(--muted);">${date}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // NEW AI CHAT INITIALIZATION
+    AIService.init({
+      fab: document.getElementById('ai-chat-fab'),
+      popup: document.getElementById('ai-chat-popup'),
+      close: document.getElementById('ai-chat-close'),
+      input: document.getElementById('ai-chat-input'),
+      send: document.getElementById('ai-chat-send'),
+      body: document.getElementById('ai-chat-body')
+    }, () => contextData);
+
+    // Filter Event Listeners
+    // Period filter (6m / 1y)
+    document.querySelectorAll('[data-period]').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        renderCharts(contextData.finances);
+      });
+    });
+
+    // Chart type filter (expense / income)
+    document.querySelectorAll('#monthly-chart-type-filter [data-type]').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('#monthly-chart-type-filter [data-type]').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentChartType = this.dataset.type;
+        renderCharts(contextData.finances);
+        renderRecentExpenses(contextData.finances, currentFilter, currentChartType);
+      });
+    });
+
+    // Recent expenses filter (all / recent)
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentFilter = this.dataset.filter;
+        renderRecentExpenses(contextData.finances, currentFilter, currentChartType);
+      });
+    });
+
+    if (loginBtn) loginBtn.addEventListener('click', () => {
+      // ensure offline flag is cleared before attempting login
+      AuthService.setLocalOnly(false);
+      AuthService.login();
+    });
+    if (skipBtn) skipBtn.addEventListener('click', () => { AuthService.setLocalOnly(true); location.reload(); });
+
+    async function updateHeaderLevel() {
+      try {
+        const { GamificationService } = await import('./js/gamification-service.js');
+        const stats = await GamificationService.getStats();
+        const badge = document.getElementById('header-level-badge');
+        if (badge) {
+          badge.textContent = `LVL ${stats.level || 0}`;
+          badge.style.display = 'inline-block';
+        }
+      } catch (err) {
+        console.warn("Failed to update header level:", err);
+      }
+    }
+  </script>
+</body>
+
+</html>

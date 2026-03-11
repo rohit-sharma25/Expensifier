@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Input Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #f5f5f5;
+        }
+
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #000;
+            margin-bottom: 20px;
+        }
+
+        .input-test {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            background: #FFFFFF;
+            color: #000000;
+            pointer-events: auto;
+            user-select: text;
+            cursor: text;
+        }
+
+        .input-test:focus {
+            outline: none;
+            border-color: #000000;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .result {
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-top: 10px;
+            min-height: 40px;
+            color: #000;
+        }
+
+        button {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #1A1A1A;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            background: #e0f2fe;
+            border-radius: 8px;
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-container">
+        <h1>🧪 AI Input Field Test</h1>
+
+        <p><strong>Test 1: Basic Input</strong></p>
+        <input type="text" class="input-test" id="test1" placeholder="Type here to test...">
+        <div class="result" id="result1">You typed: <span id="output1">nothing yet</span></div>
+
+        <p style="margin-top: 30px;"><strong>Test 2: AI Chat Style Input</strong></p>
+        <input type="text" class="input-test" id="test2" placeholder="Ask about your expenses..." autocomplete="off">
+        <button onclick="sendMessage()">Send Message</button>
+        <div class="result" id="result2">Message: <span id="output2">none</span></div>
+
+        <div class="status">
+            <strong>Status:</strong> If you can type in both inputs above, the issue is NOT with the input element
+            itself.
+            The problem might be with the popup container or z-index stacking in the main app.
+        </div>
+    </div>
+
+    <script>
+        // Test 1
+        document.getElementById('test1').addEventListener('input', function (e) {
+            document.getElementById('output1').textContent = e.target.value || 'nothing yet';
+        });
+
+        // Test 2
+        document.getElementById('test2').addEventListener('input', function (e) {
+            console.log('Input event:', e.target.value);
+        });
+
+        document.getElementById('test2').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const input = document.getElementById('test2');
+            const msg = input.value.trim();
+            if (msg) {
+                document.getElementById('output2').textContent = msg;
+                input.value = '';
+            }
+        }
+
+        // Log when page loads
+        console.log('Test page loaded successfully');
+        console.log('Input 1:', document.getElementById('test1'));
+        console.log('Input 2:', document.getElementById('test2'));
+    </script>
+</body>
+
+</html>

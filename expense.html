@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Expenses - EXPENSIFIER</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+  <!-- Diagnostic Script to catch hanging or failing modules -->
+  <script>
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+      console.error(msg, url, lineNo, columnNo, error);
+      alert('Script Error: ' + msg + '\nCheck Console (F12) for details.');
+      return false;
+    };
+    window.addEventListener('unhandledrejection', function (event) {
+      console.error('Unhandled rejection:', event.reason);
+      alert('Async Error: ' + event.reason);
+    });
+  </script>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-content animate-fade-in-down">
+        <div class="brand">
+          <div class="brand-logo">
+            <img src="img/logo.jpg" alt="E" onerror="if(this.parentElement){this.parentElement.innerText='E'}">
+          </div>
+          <div class="brand-text">
+            <h1>EXPENSIFIER</h1>
+            <p>Manage your expenses</p>
+          </div>
+        </div>
+
+        <nav class="header-nav" style="display: flex; gap: 24px; margin-left: 40px;">
+          <a href="index.html" class="nav-link active"
+            style="text-decoration: none; color: var(--muted); font-weight: 600; transition: color 0.2s;">Dashboard </a>
+          <a href="invest.html" class="nav-link"
+            style="text-decoration: none; color: var(--muted); font-weight: 600; transition: color 0.2s;">Investments</a>
+          <a href="expense.html" class="nav-link"
+            style="text-decoration: none; color: var(--primary); font-weight: 700; border-bottom: 2px solid var(--primary); padding-bottom: 4px;">Expenses</a>
+        </nav>
+
+        <div class="user-section" id="auth-section">
+          <div id="logged-out-view" class="row">
+            <button id="login-btn" class="btn btn-primary">Sign in with Google</button>
+          </div>
+          <div id="user-info" class="user-section hidden">
+            <div class="user-info">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span id="user-name" class="user-name"></span>
+                <span id="header-level-badge"
+                  style="background: #FFD700; color: #000; font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 10px; display: none;">LVL
+                  0</span>
+              </div>
+            </div>
+            <a href="profile.html" style="margin-right: 12px;">
+              <img id="user-photo" class="user-photo" src="" alt="Profile"
+                style="border: 2px solid var(--primary); padding: 2px;" />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="row" style="margin-top: 16px; gap: 12px;">
+        <a href="index.html" class="btn btn-ghost">← Back to Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Add Expense Form -->
+    <section class="expenses-section animate-fade-in-up">
+      <h3 class="section-title" id="entry-form-title" style="text-align: center;">➕ Add New Entry</h3>
+      <div class="section-header" style="justify-content: flex-start; gap: 24px;">
+        <div class="row">
+          <button type="button" id="btn-expense" class="filter-btn active">Expense</button>
+          <button type="button" id="btn-income" class="filter-btn">Income</button>
+        </div>
+      </div>
+
+      <form id="expense-form"
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px;">
+        <div>
+          <label
+            style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">Description</label>
+          <input type="text" id="expense-desc" placeholder="e.g., Lunch at restaurant" required autocomplete="off" />
+        </div>
+
+        <div>
+          <label
+            style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">Amount
+            (₹)</label>
+          <input type="number" id="expense-amount" placeholder="0.00" step="0.01" required />
+        </div>
+
+        <div>
+          <label
+            style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">Category</label>
+          <select id="expense-category" required>
+            <option value="">Select Category</option>
+            <option value="Food & Grocery">🍔 Food & Grocery</option>
+            <option value="Investment">📈 Investment</option>
+            <option value="Shopping">🛍️ Shopping</option>
+            <option value="Traveling">✈️ Traveling</option>
+            <option value="Peoples">👥 Peoples</option>
+            <option value="Bill & Subscription">💳 Bill & Subscription</option>
+            <option value="LLM Models">🤖 LLM Models</option>
+            <option value="Miscellaneous">📦 Miscellaneous</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">Sub
+            Category</label>
+          <select id="expense-subcategory" required>
+            <option value="">Select Sub Category</option>
+            <!-- Food & Grocery -->
+            <option value="Restaurant" data-category="Food & Grocery">Restaurant</option>
+            <option value="Groceries" data-category="Food & Grocery">Groceries</option>
+            <option value="Snacks" data-category="Food & Grocery">Snacks</option>
+            <option value="Beverages" data-category="Food & Grocery">Beverages</option>
+            <!-- Investment -->
+            <option value="Stocks" data-category="Investment">Stocks</option>
+            <option value="Mutual Funds" data-category="Investment">Mutual Funds</option>
+            <option value="Crypto" data-category="Investment">Crypto</option>
+            <option value="Gold" data-category="Investment">Gold</option>
+            <option value="Fixed Deposit" data-category="Investment">Fixed Deposit</option>
+            <!-- Shopping -->
+            <option value="Clothing" data-category="Shopping">Clothing</option>
+            <option value="Electronics" data-category="Shopping">Electronics</option>
+            <option value="Home & Kitchen" data-category="Shopping">Home & Kitchen</option>
+            <option value="Books" data-category="Shopping">Books</option>
+            <option value="Accessories" data-category="Shopping">Accessories</option>
+            <!-- Traveling -->
+            <option value="Flight" data-category="Traveling">Flight</option>
+            <option value="Hotel" data-category="Traveling">Hotel</option>
+            <option value="Cab/Taxi" data-category="Traveling">Cab/Taxi</option>
+            <option value="Train" data-category="Traveling">Train</option>
+            <option value="Bus" data-category="Traveling">Bus</option>
+            <!-- Miscellaneous -->
+            <option value="Gifts" data-category="Miscellaneous">Gifts</option>
+            <option value="Entertainment" data-category="Miscellaneous">Entertainment</option>
+            <option value="Healthcare" data-category="Miscellaneous">Healthcare</option>
+            <option value="Education" data-category="Miscellaneous">Education</option>
+            <option value="Other" data-category="Miscellaneous">Other</option>
+            <!-- Bill & Subscription -->
+            <option value="Netflix" data-category="Bill & Subscription">Netflix</option>
+            <option value="Spotify" data-category="Bill & Subscription">Spotify</option>
+            <option value="WiFi/Internet" data-category="Bill & Subscription">WiFi/Internet</option>
+            <option value="Electricity" data-category="Bill & Subscription">Electricity</option>
+            <option value="Water" data-category="Bill & Subscription">Water</option>
+            <option value="Gas" data-category="Bill & Subscription">Gas</option>
+            <option value="Mobile" data-category="Bill & Subscription">Mobile</option>
+            <!-- LLM Models -->
+            <option value="ChatGPT" data-category="LLM Models">ChatGPT</option>
+            <option value="Claude" data-category="LLM Models">Claude</option>
+            <option value="Grok" data-category="LLM Models">Grok</option>
+            <option value="Gemini" data-category="LLM Models">Gemini</option>
+            <option value="Others" data-category="LLM Models">Others</option>
+            <!-- Peoples -->
+            <option value="Family" data-category="Peoples">Family</option>
+            <option value="Friends" data-category="Peoples">Friends</option>
+            <option value="Relatives" data-category="Peoples">Relatives</option>
+            <option value="Others" data-category="Peoples">Others</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">Payment
+            Mode</label>
+          <select id="expense-mode" required>
+            <option value="UPI">📱 UPI</option>
+            <option value="Card">💳 Card</option>
+            <option value="Bank">🏦 Bank</option>
+            <option value="Cash">💵 Cash</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">Date</label>
+          <input type="date" id="expense-date" required />
+        </div>
+
+        <div style="display: flex; align-items: flex-end;">
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Add Entry</button>
+        </div>
+      </form>
+
+      <!-- Budget Section -->
+      <div
+        style="background: rgba(91, 108, 242, 0.05); border: 1px solid rgba(91, 108, 242, 0.2); border-radius: 12px; padding: 20px; margin-top: 24px;">
+        <h4 style="margin: 0 0 12px 0; font-size: 0.9rem; color: var(--muted-light); font-weight: 600;">💰 MONTHLY
+          BUDGET</h4>
+        <div class="row" style="gap: 12px;">
+          <input type="number" id="budget-input" placeholder="Set monthly budget (₹)" step="0.01" style="flex: 1" />
+          <button id="budget-save" type="button" class="btn btn-secondary">Save Budget</button>
+        </div>
+        <div id="budget-warning" class="hidden"
+          style="margin-top: 12px; padding: 10px; border-radius: 8px; font-size: 0.85rem;"></div>
+      </div>
+
+      <!-- Summary -->
+      <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px;">
+        <div
+          style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 16px;">
+          <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; font-weight: 600;">TODAY'S SPENDING
+          </div>
+          <div id="today-total" style="font-size: 1.5rem; font-weight: 700; color: #10B981;">₹0.00</div>
+        </div>
+        <div
+          style="background: linear-gradient(135deg, rgba(91, 108, 242, 0.1) 0%, rgba(74, 91, 209, 0.05) 100%); border: 1px solid rgba(91, 108, 242, 0.2); border-radius: 12px; padding: 16px;">
+          <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; font-weight: 600;">MONTH'S SPENDING
+          </div>
+          <div id="month-total" style="font-size: 1.5rem; font-weight: 700; color: #5B6CF2;">₹0.00</div>
+        </div>
+        <div
+          style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; padding: 16px;">
+          <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; font-weight: 600;">BUDGET STATUS</div>
+          <div id="budget-status" style="font-size: 1.5rem; font-weight: 700; color: #EF4444;">Not Set</div>
+        </div>
+
+        <!-- Magic SMS Paste -->
+        <div id="sms-parser-card"
+          style="background: linear-gradient(135deg, rgba(91, 108, 242, 0.1) 0%, rgba(74, 91, 209, 0.05) 100%); border: 1px dashed var(--primary); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="margin-bottom: 8px;">
+            <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; font-weight: 600;">✨ MAGIC SMS PASTE
+            </div>
+            <textarea id="sms-input" placeholder="Paste bank/UPI SMS here..."
+              style="width: 100%; height: 60px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.75rem; resize: none; background: rgba(255,255,255,0.7); font-family: inherit;"></textarea>
+          </div>
+          <button id="sms-process-btn" class="btn btn-primary"
+            style="padding: 8px 12px; font-size: 0.8rem; width: 100%; font-weight: 700; border-radius: 8px;">Extract &
+            Add Details</button>
+        </div>
+
+        <!-- Missing Month Income Total -->
+        <div id="month-income-total" class="hidden"></div>
+      </div>
+    </section>
+
+    <!-- AI Smart Dashboard -->
+    <div id="ai-smart-dashboard" class="animate-fade-in-up" style="margin-top: 32px; display: none;">
+      <div class="minimal-insight-card">
+        <span class="insight-icon">✨</span>
+        <div id="ai-dashboard-insight" class="insight-text">
+          <span class="typing-dots">Analyzing spending...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cha                                                                                                                                            rts Section -->
+    <div class="charts-section animate-fade-in-up stagger-1" style="margin-top: 32px;">
+      <!-- Spending Trend -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">📊 7-Day Spending Trend</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="trend-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Category Breakdown -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3 class="chart-title">🎯 Category Breakdown</h3>
+        </div>
+        <div class="chart-container" style="height: 250px;">
+          <canvas id="category-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- All Expenses Table -->
+    <section class="expenses-section animate-fade-in-up stagger-2" style="margin-top: 32px;">
+      <div class="section-header">
+        <h3 class="section-title">📋 All Expenses</h3>
+        <div class="row">
+          <input type="text" id="search-input" placeholder="Search expenses..." style="width: 250px;" />
+          <select id="filter-category" style="width: 180px;">
+            <option value="">All Categories</option>
+            <option value="Food & Grocery">🍔 Food & Grocery</option>
+            <option value="Investment">📈 Investment</option>
+            <option value="Shopping">🛍️ Shopping</option>
+            <option value="Traveling">✈️ Traveling</option>
+            <option value="Miscellaneous">📦 Miscellaneous</option>
+            <option value="Bill & Subscription">💳 Bill & Subscription</option>
+          </select>
+          <button id="export-btn" class="btn btn-secondary hidden">📥 Export CSV</button>
+        </div>
+      </div>
+
+      <table class="expenses-table">
+        <thead>
+          <tr>
+            <th>S.N</th>
+            <th style="cursor: pointer;" id="sort-amount">Amount ↕</th>
+            <th>Category</th>
+            <th>Sub Category</th>
+            <th style="cursor: pointer;" id="sort-date">Date ↕</th>
+            <th>Mode</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="expense-table-body">
+          <!-- Expenses will be dynamically inserted -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- THE NEW RADIANT AI CHAT UI -->
+  <div id="ai-chat-fab" class="ai-fab">
+    <span>🤖</span>
+  </div>
+
+  <div id="ai-chat-popup" class="ai-chat-popup hidden">
+    <div class="ai-chat-header">
+      <div class="ai-chat-title">
+        <span>🤖</span>
+        <span>Finance AI</span>
+      </div>
+      <button id="ai-chat-close" class="btn-icon"
+        style="background:none; border:none; color:white; cursor:pointer; font-size:1.5rem;">×</button>
+    </div>
+    <div id="ai-chat-body" class="ai-chat-body">
+      <div class="msg-ai">Hello! I'm your new financial advisor. How can I help you today?</div>
+    </div>
+    <div class="ai-chat-footer">
+      <input type="text" id="ai-chat-input" class="ai-chat-input" placeholder="Type your question..."
+        autocomplete="off">
+      <button id="ai-chat-send" class="ai-chat-send">🚀</button>
+    </div>
+  </div>
+
+  <script type="module" src="expense.js"></script>
+</body>
+
+</html>

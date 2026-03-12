@@ -1,15 +1,12 @@
 // js/telegram-service.js
-// Telegram Bot Notification Service
+// Telegram Bot Notification Service (Prototype - Direct API)
+// NOTE: For production, this should use Firebase Cloud Functions
 
 export class TelegramService {
-  // Initialize with your bot token and chat ID from BotFather
-  // Get token: Chat BotFather -> /mybots -> Select bot -> API Token
-  // Get chat ID: Chat @userinfobot -> will show your ID
-  // NOTE: Use environment variables to load these securely, NOT hardcoded values!
-  
-  static BOT_TOKEN = process.env.VITE_TELEGRAM_BOT_TOKEN || "8319998354:AAFJAbvYOAIBLOW2xBfYXbbfMiTIkNKA6u0";
-  static CHAT_ID = process.env.VITE_TELEGRAM_CHAT_ID || "5515681234";
-  
+  // Credentials for prototype (will migrate to Cloud Functions after upgrade)
+  static BOT_TOKEN = "8319998354:AAFJAbvYOAIBLOW2xBfYXbbfMiTIkNKA6u0";
+  static CHAT_ID = "5515681234";
+
   /**
    * Send a transaction notification to Telegram
    * @param {number} amount - Transaction amount
@@ -18,13 +15,7 @@ export class TelegramService {
    * @param {string} description - Transaction description
    * @param {string} subCategory - Sub-category name (optional)
    */
-  static sendNotification(amount, type, category, description, subCategory = '') {
-    // Check if credentials are set
-    if (this.BOT_TOKEN === "8319998354:AAFJAbvYOAIBLOW2xBfYXbbfMiTIkNKA6u0                                                                                                                 " || this.CHAT_ID === "5515681234") {
-      console.warn("Telegram credentials not configured. Please set BOT_TOKEN and CHAT_ID in telegram-service.js");
-      return Promise.resolve();
-    }
-
+  static async sendNotification(amount, type, category, description, subCategory = '') {
     const icon = type === 'income' ? '💰' : '💸';
     const typeLabel = type === 'income' ? 'Income' : 'Expense';
     const categoryText = subCategory ? `${category} → ${subCategory}` : category;
@@ -43,34 +34,34 @@ Time: ${new Date().toLocaleString('en-IN')}`;
    * Send a raw message to Telegram
    * @param {string} message - The message text
    */
-  static _sendTelegramMessage(message) {
+  static async _sendTelegramMessage(message) {
     const url = `https://api.telegram.org/bot${this.BOT_TOKEN}/sendMessage`;
-    
-    return fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        chat_id: this.CHAT_ID,
-        text: message,
-        parse_mode: "HTML"
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.ok) {
-          console.log("Telegram notification sent successfully");
-          return data;
-        } else {
-          console.error("Telegram API error:", data.description);
-          throw new Error(data.description);
-        }
-      })
-      .catch(err => {
-        console.error("Failed to send Telegram notification:", err);
-        // Don't throw - silently fail so it doesn't interrupt the user's workflow
-        return null;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          chat_id: this.CHAT_ID,
+          text: message
+        })
       });
+
+      const data = await response.json();
+
+      if (data.ok) {
+        console.log('✅ Telegram notification sent successfully');
+        return data;
+      } else {
+        console.error('❌ Telegram API error:', data.description);
+        throw new Error(data.description);
+      }
+    } catch (error) {
+      console.warn('⚠️ Telegram notification error (non-blocking):', error.message);
+      // Don't throw - silently fail so it doesn't interrupt the user's workflow
+      return null;
+    }
   }
 }

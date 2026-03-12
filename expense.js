@@ -4,6 +4,7 @@ import { DBService } from './js/db-service.js';
 import { AIService } from './js/ai-service.js';
 import { FinancialEngine } from './js/financial-engine.js';
 import { NotificationService } from './js/notification-service.js';
+import { TelegramService } from './js/telegram-service.js';
 import { createDonutChart, createLineChart, createTrajectoryChart, destroyChart } from './js/chart-utils.js';
 import { calculateFinanceStats, analyzeSpendingByCategory, getSpendingTrend, calculateBudgetTrajectory } from './js/analytics.js';
 import { parseSMS } from './js/sms-parser.js';
@@ -447,6 +448,13 @@ if (form) {
     // immediately update local cache/UI in case storage event is slow
     finances.push(expenseData);
     renderFinances();
+
+    // Send Telegram notification
+    try {
+      await TelegramService.sendNotification(amount, type, category, desc, subCategory);
+    } catch (err) {
+      console.warn("Telegram notification error (non-critical):", err);
+    }
 
     // Gamification: Award 10 XP
     try {

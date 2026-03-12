@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Existing rules for user data
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 2. NEW RULE for Telegram Sync (placed INSIDE the documents block)
+    match /syncCodes/{code} {
+      allow read, write: if request.auth != null;
+    }
+
+    // NEW RULE for Telegram Bot to find UID by Telegram ID
+    match /telegramUsers/{telegramId} {
+      allow read, write: if request.auth != null;
+    }
+    
+  }
+}

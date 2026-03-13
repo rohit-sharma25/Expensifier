@@ -26,14 +26,14 @@
           </div>
         </div>
 
-        <nav class="header-nav" style="display: flex; gap: 24px; margin-left: 40px;">
-          <a href="index.html" class="nav-link active"
-            style="text-decoration: none; color: var(--primary); font-weight: 700; border-bottom: 2px solid var(--primary); padding-bottom: 4px;">Dashboard</a>
-          <a href="invest.html" class="nav-link"
-            style="text-decoration: none; color: var(--muted); font-weight: 600; transition: color 0.2s;">Investments</a>
-          <a href="expense.html" class="nav-link"
-            style="text-decoration: none; color: var(--muted); font-weight: 600; transition: color 0.2s;">Expenses</a>
+        <nav class="header-nav" style="display: flex; gap: 8px; margin-left: 40px;">
+          <a href="index.html" class="nav-link active">Dashboard</a>
+          <a href="invest.html" class="nav-link">Investments</a>
+          <a href="expense.html" class="nav-link">Expenses</a>
         </nav>
+        <button class="hamburger" id="nav-hamburger" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
 
         <div class="user-section" id="auth-section">
           <div id="logged-out-view" class="row">
@@ -55,6 +55,7 @@
                 style="border: 2px solid var(--primary); padding: 2px;" />
             </a>
           </div>
+          <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Theme">🌙</button>
         </div>
       </div>
     </div>
@@ -96,15 +97,14 @@
     <!-- GEN-3 Financial Intelligence Grid -->
     <div class="dashboard-grid animate-fade-in-up stagger-1">
       <!-- Account Balance Card -->
-      <div class="stat-card">
+      <div class="stat-card loading" id="stat-available-cash">
         <div class="stat-card-header">
           <div class="stat-card-icon">💳</div>
-          <span class="stat-card-badge" style="background: rgba(0,0,0,0.05);">CASH</span>
+          <span class="stat-card-badge health-stable">CASH</span>
         </div>
         <div class="stat-card-body">
           <h3>Available Cash</h3>
-          <div class="stat-card-value" id="account-balance"
-            style="color: #000000; background: none; -webkit-text-fill-color: unset;">₹0.00</div>
+          <div class="stat-card-value" id="account-balance">₹0.00</div>
           <div id="health-status-container" style="margin-top: 8px;">
             <span id="health-status" class="health-status health-stable">STABLE</span>
           </div>
@@ -112,16 +112,14 @@
       </div>
 
       <!-- Financial Health Card -->
-      <div class="stat-card">
+      <div class="stat-card loading" id="stat-safety-level">
         <div class="stat-card-header">
           <div class="stat-card-icon">🛡️</div>
-          <span class="stat-card-badge"
-            style="background: rgba(91, 108, 242, 0.1); color: var(--primary);">HEALTH</span>
+          <span class="stat-card-badge health-stable">SECURE</span>
         </div>
         <div class="stat-card-body">
           <h3>Safety Level</h3>
-          <div class="stat-card-value" id="risk-label"
-            style="color: #000000; background: none; -webkit-text-fill-color: unset;">Low Risk</div>
+          <div class="stat-card-value" id="risk-label">Low Risk</div>
           <div class="stat-card-trend">
             <span id="risk-score">0</span><span>/100 score</span>
           </div>
@@ -129,18 +127,17 @@
       </div>
 
       <!-- Burn Rate Card -->
-      <div class="stat-card">
+      <div class="stat-card loading" id="stat-daily-burn">
         <div class="stat-card-header">
           <div class="stat-card-icon">🔥</div>
-          <span class="stat-card-badge" style="background: rgba(239, 68, 68, 0.1); color: #EF4444;">BURN RATE</span>
+          <span class="stat-card-badge health-stable">BURN RATE</span>
         </div>
         <div class="stat-card-body">
           <h3>Daily Spending</h3>
-          <div class="stat-card-value" id="burn-rate"
-            style="color: #000000; background: none; -webkit-text-fill-color: unset;">₹0</div>
+          <div class="stat-card-value" id="burn-rate">₹0</div>
           <div class="stat-card-trend">
-            <div style="width: 100%; background: rgba(0,0,0,0.05); height: 4px; border-radius: 99px; margin-top: 8px;">
-              <div id="burn-bar" style="width: 0%; height: 100%; background: #EF4444; border-radius: 99px;"></div>
+            <div class="burn-bar-container">
+              <div id="burn-bar" class="burn-bar" style="width: 0%"></div>
             </div>
             <span id="burn-text"
               style="font-size: 0.7rem; color: var(--muted); margin-top: 4px; display: block;">Projected: ₹0
@@ -389,8 +386,24 @@
     import { NotificationService } from './js/notification-service.js';
     import { calculateBudgetTrajectory, analyzeSpendingByCategory } from './js/analytics.js';
     import { createTrajectoryChart, destroyChart } from './js/chart-utils.js';
+    import { showToast } from './js/toast.js';
 
     // DOM Elements
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Escape to close AI Chat
+      if (e.key === 'Escape') {
+        const popup = document.getElementById('ai-chat-popup');
+        const overlay = document.getElementById('ai-chat-overlay');
+        if (popup) popup.classList.remove('active');
+        if (overlay) overlay.style.display = 'none';
+      }
+      
+      // 's' or '/' to focus search if it exists (not implemented yet, but good for future)
+      
+      // Alt + N to jump to expense page could be done in service worker or global script
+    });
+
     const loginBtn = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const skipBtn = document.getElementById('skip-btn');
@@ -571,6 +584,11 @@
             }
 
             renderDashboard(contextData.finances, contextData.budget);
+            
+            // Remove skeleton loaders
+            document.querySelectorAll('.stat-card.loading').forEach(card => {
+              card.classList.remove('loading');
+            });
           } catch (err) {
             console.error('❌ Error processing budget subscription:', err);
           }
@@ -607,7 +625,7 @@
         lastAiUpdate = 0; // Trigger immediately
       } catch (error) {
         console.error('❌ Fatal error in loadData:', error);
-        alert('⚠️ Failed to load data. Please check console and try refreshing.');
+        showToast('⚠️ Failed to load data. Please check console and try refreshing.', 'error', 6000);
       }
     }
 
@@ -671,7 +689,7 @@
       const savedAmount = savedEl ? parseFloat(savedEl.value) || 0 : 0;
 
       if (!name || targetAmount <= 0) {
-        alert('Please enter a valid goal name and target amount');
+        showToast('Please enter a valid goal name and target amount', 'error');
         return;
       }
 
@@ -1172,6 +1190,30 @@
         console.warn("Failed to update header level:", err);
       }
     }
+
+    // Hamburger nav toggle
+    const hamburger = document.getElementById('nav-hamburger');
+    const nav = document.querySelector('.header-nav');
+    if (hamburger && nav) {
+      hamburger.addEventListener('click', () => nav.classList.toggle('nav-open'));
+    }
+    // Theme Toggle Logic
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
+    
+    // Check for saved preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      body.classList.add('light-mode');
+      themeToggle.textContent = '☀️';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      body.classList.toggle('light-mode');
+      const isLight = body.classList.contains('light-mode');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      themeToggle.textContent = isLight ? '☀️' : '🌙';
+    });
   </script>
 </body>
 

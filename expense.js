@@ -5,12 +5,31 @@ import { AIService } from './js/ai-service.js';
 import { FinancialEngine } from './js/financial-engine.js';
 import { NotificationService } from './js/notification-service.js';
 import { TelegramService } from './js/telegram-service.js';
+import { showToast } from './js/toast.js';
 import { createDonutChart, createLineChart, createTrajectoryChart, destroyChart } from './js/chart-utils.js';
 import { calculateFinanceStats, analyzeSpendingByCategory, getSpendingTrend, calculateBudgetTrajectory } from './js/analytics.js';
 import { parseSMS } from './js/sms-parser.js';
 
 const TIMEZONE = "Asia/Kolkata";
 const todayStr = () => new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+
+// Keyboard Shortcuts
+document.addEventListener('keydown', (e) => {
+  // Escape to close AI Chat
+  if (e.key === 'Escape') {
+    const popup = document.getElementById('ai-chat-popup');
+    const overlay = document.getElementById('ai-chat-overlay');
+    if (popup) popup.classList.remove('active');
+    if (overlay) overlay.style.display = 'none';
+  }
+  
+  // 'n' to focus the Add Entry amount input
+  if (e.key.toLowerCase() === 'n' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    const amountInput = document.getElementById('expense-amount');
+    if (amountInput) amountInput.focus();
+  }
+});
 
 let finances = [];
 let monthlyBudget = null;
@@ -421,12 +440,12 @@ if (form) {
     const dateISO = dateInput.value || todayStr();
 
     if (!desc || isNaN(amount) || amount <= 0) {
-      alert('Please enter valid description and amount');
+      showToast('Please enter a valid description and amount', 'error');
       return;
     }
 
     if ((!category || !subCategory)) {
-      alert('Please select category and sub-category');
+      showToast('Please select category and sub-category', 'error');
       return;
     }
 
@@ -449,9 +468,16 @@ if (form) {
     finances.push(expenseData);
     renderFinances();
 
-    // Send Telegram notification
+    // Send Telegram notification — only if user has linked their Telegram account
     try {
-      await TelegramService.sendNotification(amount, type, category, desc, subCategory);
+      let telegramChatId = null;
+      if (currentUser?.uid) {
+        const { db } = await import('./js/firebase-config.js');
+        const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js");
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        telegramChatId = userDoc.exists() ? (userDoc.data()?.telegramId ?? null) : null;
+      }
+      await TelegramService.sendNotification(amount, type, category, desc, subCategory, telegramChatId);
     } catch (err) {
       console.warn("Telegram notification error (non-critical):", err);
     }
@@ -472,7 +498,7 @@ if (form) {
     if (subCategorySelect) subCategorySelect.value = "";
     if (dateInput) dateInput.value = "";
 
-    alert('Entry added successfully!');
+    showToast('✅ Entry added successfully!', 'success');
     NotificationService.requestPermission();
   };
 }
@@ -514,7 +540,7 @@ if (budgetSave) {
     const value = parseFloat(budgetInput.value);
 
     if (isNaN(value) || value < 0) {
-      alert('Please enter a valid budget amount');
+      showToast('Please enter a valid budget amount', 'error');
       return;
     }
 
@@ -523,7 +549,7 @@ if (budgetSave) {
       const uid = isLocal ? null : currentUser?.uid;
 
       if (!isLocal && !uid) {
-        alert('Please sign in to save your budget online, or use Offline mode.');
+        showToast('Please sign in to save your budget online, or use Offline mode.', 'warning');
         return;
       }
 
@@ -538,18 +564,19 @@ if (budgetSave) {
       updateFinanceSummary();
       renderAnalytics();
 
-      alert(`Monthly budget set to ₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`);
+      showToast(`Monthly budget set to ₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 'success');
     } catch (error) {
       console.error('Error saving budget:', error);
-      alert('Failed to save budget. Please check your connection or storage.');
+      showToast('Failed to save budget. Please check your connection or storage.', 'error');
     }
   };
 }
 
 if (toggleExpense) {
   toggleExpense.onclick = () => {
-    toggleExpense.classList.add('active');
-    toggleIncome.classList.remove('active');
+    toggleExpense.classList.add('active-expense');
+    toggleExpense.classList.remove('active-income');
+    toggleIncome.classList.remove('active-expense', 'active-income');
     const title = document.getElementById('entry-form-title');
     if (title) title.innerHTML = '➕ Add New Expense';
     restoreExpenseCategories();
@@ -557,8 +584,9 @@ if (toggleExpense) {
 }
 if (toggleIncome) {
   toggleIncome.onclick = () => {
-    toggleIncome.classList.add('active');
-    toggleExpense.classList.remove('active');
+    toggleIncome.classList.add('active-income');
+    toggleIncome.classList.remove('active-expense');
+    toggleExpense.classList.remove('active-expense', 'active-income');
     const title = document.getElementById('entry-form-title');
     if (title) title.innerHTML = '💰 Add New Income';
     populateCategoriesForIncome();
@@ -637,7 +665,7 @@ if (processSmsBtn && smsPasteArea) {
   processSmsBtn.onclick = async () => {
     const text = smsPasteArea.value.trim();
     if (!text) {
-      alert('Please paste an SMS first');
+      showToast('Please paste an SMS first', 'warning');
       return;
     }
 
@@ -714,11 +742,11 @@ if (processSmsBtn && smsPasteArea) {
         }, 3000);
 
       } else {
-        alert('Could not parse the SMS definitively. Please check the format or fill manually.');
+        showToast('Could not parse the SMS. Please check the format or fill manually.', 'warning', 5000);
       }
     } catch (err) {
       console.error(err);
-      alert('Error connecting to parser.');
+      showToast('Error connecting to SMS parser.', 'error');
     } finally {
       processSmsBtn.disabled = false;
       if (processSmsBtn.textContent.includes('Parsing')) {

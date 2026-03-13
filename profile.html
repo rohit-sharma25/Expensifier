@@ -10,11 +10,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --profile-gradient: linear-gradient(135deg, #5B6CF2 0%, #7C3AED 100%);
+      --profile-gradient: linear-gradient(135deg, #0F1220 0%, #1E2440 100%);
+      --header-accent: linear-gradient(135deg, #5B6CF2 0%, #7C3AED 100%);
     }
 
     .profile-header {
-      background: var(--profile-gradient);
+      background: var(--header-accent);
       padding: 60px 0 100px 0;
       color: white;
       text-align: center;
@@ -29,7 +30,7 @@
       left: 0;
       right: 0;
       height: 60px;
-      background: linear-gradient(to top, var(--bg-light), transparent);
+      background: linear-gradient(to top, var(--bg), transparent);
     }
 
     .profile-pic-container {
@@ -39,9 +40,9 @@
       margin: 0 auto 20px;
       border-radius: 50%;
       padding: 5px;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(10px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     }
 
     .profile-pic {
@@ -49,7 +50,7 @@
       height: 100%;
       border-radius: 50%;
       object-fit: cover;
-      border: 4px solid white;
+      border: 4px solid rgba(255, 255, 255, 0.8);
     }
 
     .level-badge-large {
@@ -62,7 +63,7 @@
       padding: 6px 12px;
       border-radius: 20px;
       font-size: 0.9rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       border: 2px solid white;
     }
 
@@ -71,11 +72,13 @@
       font-weight: 800;
       margin-bottom: 5px;
       letter-spacing: -1px;
+      color: white;
     }
 
     .profile-info p {
       opacity: 0.9;
       font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.8);
     }
 
     .profile-card-grid {
@@ -88,11 +91,13 @@
     }
 
     .gamification-card {
-      background: white;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       border-radius: 24px;
       padding: 32px;
       box-shadow: var(--shadow-xl);
       text-align: center;
+      backdrop-filter: blur(16px);
     }
 
     .xp-section {
@@ -102,7 +107,7 @@
     .xp-bar-container {
       width: 100%;
       height: 12px;
-      background: #F1F5F9;
+      background: rgba(255, 255, 255, 0.05);
       border-radius: 10px;
       margin: 15px 0;
       overflow: hidden;
@@ -110,7 +115,7 @@
 
     #xp-bar-fill {
       height: 100%;
-      background: var(--profile-gradient);
+      background: var(--header-accent);
       width: 0%;
       border-radius: 10px;
       transition: width 1s ease-out;
@@ -132,10 +137,11 @@
     }
 
     .stat-mini-card {
-      background: #F8FAFC;
+      background: var(--bg-elevated);
       padding: 20px;
       border-radius: 16px;
       text-align: left;
+      border: 1px solid var(--border);
     }
 
     .stat-mini-card span {
@@ -150,7 +156,7 @@
     .stat-mini-card div {
       font-size: 1.25rem;
       font-weight: 800;
-      color: var(--text-dark);
+      color: var(--text);
     }
 
     .back-btn {
@@ -189,11 +195,34 @@
       <div class="profile-info animate-fade-in-up">
         <h1 id="profile-name">Loading...</h1>
         <p id="profile-email">---</p>
-        <button id="logout-btn" class="btn btn-ghost"
-          style="margin-top: 20px; color: white; border-color: rgba(255,255,255,0.3);">Logout</button>
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 20px;">
+          <button id="logout-btn" class="btn btn-ghost" style="color: white; border-color: rgba(255,255,255,0.3);">Logout</button>
+          <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Theme" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: white;">🌙</button>
+        </div>
       </div>
     </div>
   </header>
+
+  <script>
+    // Theme Toggle Logic for Profile
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
+    
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      body.classList.add('light-mode');
+      themeToggle.textContent = '☀️';
+    }
+
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        body.classList.toggle('light-mode');
+        const isLight = body.classList.contains('light-mode');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        themeToggle.textContent = isLight ? '☀️' : '🌙';
+      });
+    }
+  </script>
 
   <!-- Main Content -->
   <main class="container">
@@ -267,7 +296,7 @@
           <button id="generate-sync-btn" class="btn btn-primary"
             style="background: #24A1DE; border-color: #24A1DE; width: 100%;">Generate Sync Code</button>
           <p id="sync-instruction" style="font-size: 0.8rem; color: var(--muted); margin-top: 12px;">Click to generate
-            code, then send it to <a href="https://t.me/8320318012:AAEn76oOBff6OjGLzgWXygktGeUxALEcm2g" target="_blank"
+            code, then send it to <a href="https://t.me/ExpensifierBot" target="_blank"
               style="color: #24A1DE; font-weight: 700;">@ExpensifierBot</a></p>
         </div>
 

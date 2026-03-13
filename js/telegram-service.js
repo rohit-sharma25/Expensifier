@@ -1,11 +1,11 @@
 // js/telegram-service.js
-// Telegram Bot Notification Service (Prototype - Direct API)
-// NOTE: For production, this should use Firebase Cloud Functions
+// Telegram Bot Notification Service (Direct API)
+// Uses the unified Expensifier Bot token.
+// Sends notifications to the logged-in user's linked Telegram chat ID.
 
 export class TelegramService {
-  // Credentials for prototype (will migrate to Cloud Functions after upgrade)
-  static BOT_TOKEN = "8319998354:AAFJAbvYOAIBLOW2xBfYXbbfMiTIkNKA6u0";
-  static CHAT_ID = "5515681234";
+  // Unified Expensifier Bot Token (matches functions/index.js and config.js)
+  static BOT_TOKEN = "8320318012:AAEn76oOBff6OjGLzgWXygktGeUxALEcm2g";
 
   /**
    * Send a transaction notification to Telegram
@@ -14,8 +14,14 @@ export class TelegramService {
    * @param {string} category - Category name
    * @param {string} description - Transaction description
    * @param {string} subCategory - Sub-category name (optional)
+   * @param {string} chatId - The user's Telegram chat ID (fetched from Firestore)
    */
-  static async sendNotification(amount, type, category, description, subCategory = '') {
+  static async sendNotification(amount, type, category, description, subCategory = '', chatId = null) {
+    if (!chatId) {
+      console.warn('⚠️ No Telegram Chat ID provided — notification skipped.');
+      return null;
+    }
+
     const icon = type === 'income' ? '💰' : '💸';
     const typeLabel = type === 'income' ? 'Income' : 'Expense';
     const categoryText = subCategory ? `${category} → ${subCategory}` : category;
@@ -27,14 +33,15 @@ Category: ${categoryText}
 Description: ${description}
 Time: ${new Date().toLocaleString('en-IN')}`;
 
-    return this._sendTelegramMessage(message);
+    return this._sendTelegramMessage(message, chatId);
   }
 
   /**
    * Send a raw message to Telegram
    * @param {string} message - The message text
+   * @param {string} chatId - Target chat ID
    */
-  static async _sendTelegramMessage(message) {
+  static async _sendTelegramMessage(message, chatId) {
     const url = `https://api.telegram.org/bot${this.BOT_TOKEN}/sendMessage`;
 
     try {
@@ -44,7 +51,7 @@ Time: ${new Date().toLocaleString('en-IN')}`;
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          chat_id: this.CHAT_ID,
+          chat_id: chatId,
           text: message
         })
       });

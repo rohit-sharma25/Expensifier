@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="js/toast.js"></script>
     <style>
         :root {
             --groww-green: #00D09C;
@@ -18,8 +19,10 @@
         }
 
         body {
-            background: var(--groww-bg);
+            background: var(--bg);
             color: var(--text);
+            margin: 0;
+            font-family: 'Inter', sans-serif;
         }
 
         .invest-header {
@@ -102,17 +105,20 @@
         }
 
         .instrument-card {
-            background: #fff;
-            padding: 20px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-light);
-            transition: transform 0.2s, box-shadow 0.2s;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
         }
 
         .instrument-card:hover {
             transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
+            background: var(--glass-medium);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-lg);
         }
 
         .price-ticker-container {
@@ -147,10 +153,11 @@
         }
 
         .market-card {
-            background: #fff;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
             padding: 20px;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
+            border-radius: 16px;
+            border: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -189,17 +196,13 @@
                     </div>
                 </div>
 
-                <nav class="header-nav" style="display: flex; gap: 24px; margin-left: 40px;">
-                    <a href="index.html" class="nav-link"
-                        style="text-decoration: none; color: var(--muted); font-weight: 600; transition: color 0.2s;">Dashboard</a>
-                    <a href="invest.html" class="nav-link active"
-                        style="text-decoration: none; color: var(--primary); font-weight: 700; border-bottom: 2px solid var(--primary); padding-bottom: 4px;">Investments</a>
-                    <a href="expense.html" class="nav-link"
-                        style="text-decoration: none; color: var(--muted); font-weight: 600; transition: color 0.2s;">Expenses</a>
+                <nav class="header-nav" style="display: flex; gap: 8px; margin-left: 40px;">
+                    <a href="index.html" class="nav-link">Dashboard</a>
+                    <a href="invest.html" class="nav-link active">Investments</a>
+                    <a href="expense.html" class="nav-link">Expenses</a>
                 </nav>
 
-                <div class="user-section" id="auth-section">
-
+                <div class="user-section" id="auth-section" style="display: flex; align-items: center;">
                     <div id="logged-out-view" class="row">
                         <button id="login-btn" class="btn btn-primary">Sign in with Google</button>
                     </div>
@@ -215,9 +218,10 @@
                         </div>
                         <a href="profile.html" style="margin-right: 12px;">
                             <img id="user-photo" class="user-photo" src="" alt="Profile"
-                                style="border: 2px solid var(--groww-green); padding: 2px;" />
+                                style="border: 2px solid var(--primary); padding: 2px;" />
                         </a>
                     </div>
+                    <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Theme">🌙</button>
                 </div>
             </div>
 
@@ -238,162 +242,154 @@
 
     <!-- Add Investment Modal -->
     <div id="add-holding-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--overlay); z-index:1000; align-items:center; justify-content:center; backdrop-filter: blur(8px);">
         <div
-            style="background:#fff; padding:0; border-radius:16px; width:450px; box-shadow:var(--shadow-lg); overflow:hidden;">
-            <div style="padding: 20px; background: var(--groww-bg); border-bottom: 1px solid var(--border-light);">
-                <h3 style="margin:0;">➕ Add Investment</h3>
+            style="background:var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--border); padding:0; border-radius:24px; width:480px; box-shadow:var(--shadow-xl); overflow:hidden;">
+            <div style="padding: 24px; background: var(--glass); border-bottom: 1px solid var(--border);">
+                <h3 style="margin:0; color: var(--text);">➕ Add Investment</h3>
             </div>
 
             <!-- Modal Tabs -->
-            <div style="display:flex; border-bottom: 1px solid var(--border-light);">
+            <div style="display:flex; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02);">
                 <button type="button" class="modal-tab active" data-target="tab-stock"
-                    style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600; border-bottom: 2px solid var(--groww-green);">Stocks</button>
+                    style="flex:1; padding:16px; border:none; background:none; cursor:pointer; font-weight:700; color: var(--primary); border-bottom: 3px solid var(--primary);">Stocks</button>
                 <button type="button" class="modal-tab" data-target="tab-gold"
-                    style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600; color:var(--muted);">Gold/Silver</button>
+                    style="flex:1; padding:16px; border:none; background:none; cursor:pointer; font-weight:600; color:var(--muted);">Gold/Silver</button>
                 <button type="button" class="modal-tab" data-target="tab-fixed"
-                    style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600; color:var(--muted);">FD/RD</button>
+                    style="flex:1; padding:16px; border:none; background:none; cursor:pointer; font-weight:600; color:var(--muted);">FD/RD</button>
                 <button type="button" class="modal-tab" data-target="tab-sip"
-                    style="flex:1; padding:12px; border:none; background:none; cursor:pointer; font-weight:600; color:var(--muted);">SIP</button>
+                    style="flex:1; padding:16px; border:none; background:none; cursor:pointer; font-weight:600; color:var(--muted);">SIP</button>
             </div>
 
-            <form id="add-investment-form" style="padding: 24px;">
+            <form id="add-investment-form" style="padding: 32px;">
                 <!-- Stock Tab -->
                 <div id="tab-stock" class="modal-section">
-                    <div style="margin-bottom:16px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Symbol
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Symbol
                             (e.g. RELIANCE.BSE, IBM)</label>
                         <input type="text" name="stock_symbol" placeholder="RELIANCE.BSE"
-                            style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                     </div>
-                    <div style="margin-bottom:16px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Company
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Company
                             Name</label>
                         <input type="text" name="stock_name" placeholder="Reliance Industries"
-                            style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                     </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                         <div>
                             <label
-                                style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Quantity</label>
+                                style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Quantity</label>
                             <input type="number" name="stock_qty" step="0.01"
-                                style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                                style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                         </div>
                         <div>
-                            <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Avg Buy
+                            <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Avg Buy
                                 Price</label>
                             <input type="number" name="stock_price" step="0.01"
-                                style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                                style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                         </div>
                     </div>
                 </div>
 
                 <!-- Gold/Silver Tab -->
                 <div id="tab-gold" class="modal-section" style="display:none;">
-                    <div style="margin-bottom:16px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Asset
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Asset
                             Type</label>
                         <select name="gold_type"
-                            style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                             <option value="GOLD">Gold (24K) - per gram</option>
                             <option value="SILVER">Silver - per gram</option>
                         </select>
                     </div>
-                    <div style="margin-bottom:16px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">📏 Weight
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">📏 Weight
                             (grams)</label>
                         <input type="number" name="gold_qty" step="0.1" placeholder="e.g., 50 grams"
-                            style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
-                        <small style="color:var(--muted); font-size:0.7rem; margin-top:4px; display:block;">Enter weight
-                            in grams. Example: 50 = 50 grams</small>
+                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                     </div>
                     <div>
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">💰 Total
+                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">💰 Total
                             Amount Paid (₹)</label>
                         <input type="number" name="gold_price" step="0.01" placeholder="e.g., 312500"
-                            style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
-                        <small style="color:var(--muted); font-size:0.7rem; margin-top:4px; display:block;">Total amount
-                            you paid. App will calculate per-gram price automatically.</small>
+                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                     </div>
                 </div>
 
                 <!-- Fixed Income Tab -->
                 <div id="tab-fixed" class="modal-section" style="display:none;">
-                    <div style="margin-bottom:16px;">
+                    <div style="margin-bottom:20px;">
                         <label
-                            style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Type</label>
+                            style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Type</label>
                         <select name="fixed_type"
-                            style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                             <option value="FD">Fixed Deposit (FD)</option>
                             <option value="RD">Recurring Deposit (RD)</option>
                         </select>
                     </div>
-                    <div style="margin-bottom:16px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Bank /
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Bank /
                             Institution Name</label>
                         <input type="text" name="fixed_name" placeholder="SBI Bank"
-                            style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                     </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
                         <div>
                             <label
-                                style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Principal
-                                / Monthly</label>
+                                style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Principal</label>
                             <input type="number" name="fixed_amount" step="1"
-                                style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                                style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                         </div>
                         <div>
                             <label
-                                style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Interest
-                                Rate (%)</label>
+                                style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">ROI (%)</label>
                             <input type="number" name="fixed_roi" step="0.01"
-                                style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                                style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                         </div>
                     </div>
-                    <div style="margin-bottom:16px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Maturity
-                            Amount (Target)</label>
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Maturity
+                            Amount</label>
                         <input type="number" name="fixed_maturity" step="1"
-                            style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                     </div>
                 </div>
 
                 <!-- SIP Tab -->
                 <div id="tab-sip" class="modal-section" style="display:none;">
-                    <div style="margin-bottom:16px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">SIP
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">SIP
                             Name</label>
                         <input type="text" name="sip_name" placeholder="Nifty 50 Index Fund"
-                            style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                     </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
                         <div>
-                            <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Monthly
+                            <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Monthly
                                 Amount</label>
                             <input type="number" name="sip_amount" step="1"
-                                style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                                style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                         </div>
                         <div>
-                            <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Total
-                                Invested So Far</label>
+                            <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Invested</label>
                             <input type="number" name="sip_invested" step="1"
-                                style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                                style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                         </div>
                     </div>
-                    <div style="margin-bottom:16px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted);">Target Goal
-                            Amount</label>
+                    <div style="margin-bottom:20px;">
+                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Target Goal</label>
                         <input type="number" name="sip_target" step="1"
-                            style="width:100%; padding:10px; border:1px solid var(--border); border-radius:8px;">
+                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
                     </div>
                 </div>
 
-                <div style="display:flex; gap:12px; margin-top:24px;">
+                <div style="display:flex; gap:16px; margin-top:32px;">
                     <button type="submit" class="btn btn-primary"
-                        style="flex:1; background:var(--groww-green); border:none;">Save Investment</button>
+                        style="flex:1; padding: 14px;">Save Investment</button>
                     <button type="button" class="btn btn-ghost"
                         onclick="document.getElementById('add-holding-modal').style.display='none'"
-                        style="flex:1;">Cancel</button>
+                        style="flex:1; padding: 14px;">Cancel</button>
                 </div>
             </form>
         </div>
@@ -403,19 +399,19 @@
 
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active animate-fade-in-up">
-            <div class="portfolio-summary-card">
+            <div class="portfolio-summary-card" style="background: var(--glass); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center;">
                 <div class="summary-left">
-                    <span class="p-label" style="font-size: 0.9rem;">Current Value</span>
-                    <h1 id="total-wealth">₹0</h1>
-                    <div style="display: flex; gap: 16px; align-items: center; margin-top: 8px;">
-                        <span class="return-badge" id="total-returns">+₹0 (0%)</span>
-                        <span style="color: var(--muted); font-size: 0.85rem;">Total Returns</span>
+                    <span class="p-label" style="font-size: 0.9rem; color: var(--muted); font-weight: 600;">Current Value</span>
+                    <h1 id="total-wealth" style="font-size: 3rem; margin: 8px 0; color: var(--text);">₹0</h1>
+                    <div style="display: flex; gap: 16px; align-items: center; margin-top: 12px;">
+                        <span class="return-badge" id="total-returns" style="font-size: 1rem; padding: 8px 16px;">+₹0 (0%)</span>
+                        <span style="color: var(--muted); font-size: 0.9rem; font-weight: 500;">Total Returns</span>
                     </div>
                 </div>
                 <div class="summary-right">
                     <div class="p-stat">
-                        <span class="p-label">1D Returns</span>
-                        <span class="p-value up" id="daily-gain" style="font-size: 1.2rem;">+₹0 (0%)</span>
+                        <span class="p-label" style="color: var(--muted); font-weight: 600;">1D Returns</span>
+                        <div class="p-value up" id="daily-gain" style="font-size: 1.5rem; font-weight: 700; margin-top: 4px;">+₹0 (0%)</div>
                     </div>
                 </div>
             </div>
@@ -425,11 +421,11 @@
                 <!-- Gold Card -->
                 <div class="market-card">
                     <div>
-                        <h3>GOLD (10g)</h3>
-                        <div class="price" id="price-gold">₹0</div>
+                        <h3 style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; font-weight: 700;">🟡 GOLD (10g)</h3>
+                        <div class="price" id="price-gold" style="font-size: 1.6rem; font-weight: 800; color: #F59E0B;">₹0</div>
                     </div>
                     <div style="text-align:right;">
-                        <div class="change" id="change-gold">0%</div>
+                        <div class="change" id="change-gold" style="font-weight: 700;">0%</div>
                         <p style="font-size:0.7rem; color:var(--muted); margin:4px 0 0 0;" id="status-gold">🟡 Cached
                         </p>
                     </div>
@@ -437,11 +433,11 @@
                 <!-- Silver Card -->
                 <div class="market-card">
                     <div>
-                        <h3>SILVER (1kg)</h3>
-                        <div class="price" id="price-silver">₹0</div>
+                        <h3 style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; font-weight: 700;">⚪ SILVER (1kg)</h3>
+                        <div class="price" id="price-silver" style="font-size: 1.6rem; font-weight: 800; color: #94A3B8;">₹0</div>
                     </div>
                     <div style="text-align:right;">
-                        <div class="change" id="change-silver">0%</div>
+                        <div class="change" id="change-silver" style="font-weight: 700;">0%</div>
                         <p style="font-size:0.7rem; color:var(--muted); margin:4px 0 0 0;" id="status-silver">🟡 Cached
                         </p>
                     </div>
@@ -477,17 +473,17 @@
 
                 <!-- Passive Income Estimate -->
                 <div class="stat-card"
-                    style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border: 1px solid rgba(16, 185, 129, 0.2);">
-                    <div class="stat-card-header">
-                        <div class="stat-card-icon">💸</div>
+                    style="background: linear-gradient(135deg, rgba(0, 208, 156, 0.15) 0%, rgba(0, 208, 156, 0.05) 100%); border: 1px solid rgba(0, 208, 156, 0.2); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px;">
+                    <div class="stat-card-header" style="margin-bottom: 12px;">
+                        <div class="stat-card-icon" style="font-size: 2rem;">💸</div>
                     </div>
-                    <div class="stat-card-body" style="color: #333;">
-                        <h3>Passive Income Estimate</h3>
-                        <div style="font-size: 2rem; font-weight: 800; color: #10B981; margin: 12px 0;">
-                            ₹<span id="monthly-passive">0</span><small style="font-size: 0.8rem; opacity: 0.7;">
+                    <div class="stat-card-body">
+                        <h3 style="font-size: 0.9rem; color: var(--muted); margin-bottom: 8px;">Passive Income Estimate</h3>
+                        <div style="font-size: 2.2rem; font-weight: 800; color: #00D09C; margin: 12px 0;">
+                            ₹<span id="monthly-passive">0</span><small style="font-size: 0.9rem; opacity: 0.7;">
                                 /mo</small>
                         </div>
-                        <p style="font-size: 0.85rem; color: var(--muted); line-height: 1.4;">
+                        <p style="font-size: 0.85rem; color: var(--muted); line-height: 1.5; font-weight: 500;">
                             Projected monthly yield from your FD and Savings accounts.
                         </p>
                     </div>
@@ -501,7 +497,10 @@
                 <h3 class="section-title">Your Investment Holdings</h3>
             </div>
             <div class="instrument-grid" id="stocks-list">
-                <!-- Holdings Injected Here -->
+                <!-- Skeletons -->
+                <div class="skeleton" style="height: 180px; border-radius: 16px;"></div>
+                <div class="skeleton" style="height: 180px; border-radius: 16px;"></div>
+                <div class="skeleton" style="height: 180px; border-radius: 16px;"></div>
             </div>
         </div>
 
@@ -511,7 +510,9 @@
                 <h3 class="section-title">Market Discovery</h3>
             </div>
             <div class="instrument-grid" id="gold-list">
-                <!-- Market Highlights Injected Here -->
+                <!-- Skeletons -->
+                <div class="skeleton" style="height: 220px; border-radius: 16px;"></div>
+                <div class="skeleton" style="height: 220px; border-radius: 16px;"></div>
             </div>
         </div>
 
@@ -521,7 +522,10 @@
                 <h3 class="section-title">SIP & Savings Goals</h3>
             </div>
             <div class="instrument-grid" id="savings-list">
-                <!-- Savings Items Injected Here -->
+                <!-- Skeletons -->
+                <div class="skeleton" style="height: 160px; border-radius: 16px;"></div>
+                <div class="skeleton" style="height: 160px; border-radius: 16px;"></div>
+                <div class="skeleton" style="height: 160px; border-radius: 16px;"></div>
             </div>
         </div>
 
@@ -601,6 +605,49 @@
             });
         });
 
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        if (savedTheme === 'light') {
+            body.classList.add('light-mode');
+            themeToggle.textContent = '☀️';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            const isLight = body.classList.contains('light-mode');
+            themeToggle.textContent = isLight ? '☀️' : '🌙';
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            
+            // Re-render chart to pick up theme colors if needed
+            if (portfolioChart) {
+                renderPortfolioChart(lastChartData);
+            }
+        });
+
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', (e) => {
+            // Escape to close modals/chat
+            if (e.key === 'Escape') {
+                document.getElementById('add-holding-modal').style.display = 'none';
+                const aiChatPopup = document.getElementById('ai-chat-popup');
+                if (aiChatPopup && !aiChatPopup.classList.contains('hidden')) {
+                    aiChatPopup.classList.add('hidden');
+                }
+            }
+            // 'I' to open Add Investment modal
+            if (e.key.toLowerCase() === 'i' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                document.getElementById('add-holding-modal').style.display = 'flex';
+                // Focus first input
+                setTimeout(() => {
+                    const firstInput = document.querySelector('#add-holding-modal input[type="text"]');
+                    if (firstInput) firstInput.focus();
+                }, 100);
+            }
+        });
+
         // Modal Tab Logic
         document.querySelectorAll('.modal-tab').forEach(tab => {
             tab.addEventListener('click', (e) => {
@@ -630,7 +677,7 @@
 
         if (loginBtn) {
             loginBtn.addEventListener('click', async () => {
-                try { await AuthService.login(); } catch (e) { alert(e.message); }
+                try { await AuthService.login(); } catch (e) { showToast(e.message, 'error'); }
             });
         }
 
@@ -796,7 +843,7 @@
                     await DBService.saveData(uid, collection, id, data);
                     document.getElementById('add-holding-modal').style.display = 'none';
                     form.reset();
-                    alert('Investment added successfully!');
+                    showToast('Investment added successfully!', 'success');
 
                     if (collection === 'holdings') {
                         // once a new holding is saved, refresh price cache immediately
@@ -813,7 +860,7 @@
                     } catch (err) {
                         console.warn("Gamification points not awarded:", err);
                     }
-                } catch (err) { alert('Error: ' + err.message); }
+                } catch (err) { showToast('Error: ' + err.message, 'error'); }
             };
 
             // Backend Simulation Trigger (Simulating Cloud Function)
@@ -1057,12 +1104,12 @@
                     max: maxPrice,
                     labels: {
                         formatter: (value) => '₹' + Math.round(value).toLocaleString('en-IN'),
-                        style: { colors: '#9CA3AF', fontSize: '12px' }
+                        style: { colors: 'var(--muted)', fontSize: '12px' }
                     }
                 },
                 tooltip: {
                     x: { format: 'dd MMM hh:mm tt' },
-                    theme: 'light'
+                    theme: body.classList.contains('light-mode') ? 'light' : 'dark'
                 }
             };
 
@@ -1094,12 +1141,13 @@
             const options = {
                 series: Object.values(allocation),
                 labels: Object.keys(allocation),
-                chart: { type: 'donut', height: 250 },
-                colors: ['#5B6CF2', '#FFD700', '#10B981'],
+                chart: { type: 'donut', height: 250, background: 'transparent' },
+                colors: ['#5B6CF2', '#FFD700', '#00D09C'],
                 dataLabels: { enabled: false },
-                legend: { position: 'bottom', fontSize: '10px' },
+                stroke: { show: false },
+                legend: { position: 'bottom', fontSize: '10px', labels: { colors: 'var(--muted)' } },
                 plotOptions: {
-                    pie: { donut: { size: '65%', labels: { show: true, total: { show: true, color: '#333' } } } }
+                    pie: { donut: { size: '65%', labels: { show: true, total: { show: true, color: 'var(--text)' }, value: { color: 'var(--text)' } } } }
                 }
             };
 
@@ -1129,9 +1177,9 @@
             const holdings = contextData.investments.holdings.filter(h => h.type === 'STOCK');
             if (holdings.length === 0) {
                 container.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: #fff; border-radius: 12px; border: 1px dashed var(--border);">
-                        <p style="color: var(--muted); margin-bottom: 16px;">Add stocks to track your portfolio.</p>
-                        <button class="btn btn-primary" style="background: var(--groww-green); border:none;" onclick="document.getElementById('add-holding-modal').style.display='flex'">+ Add Stocks</button>
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px; background: var(--glass); border-radius: 24px; border: 1px dashed var(--border);">
+                        <p style="color: var(--muted); margin-bottom: 20px; font-weight: 500;">No stocks found in your portfolio.</p>
+                        <button class="btn btn-primary" onclick="document.getElementById('add-holding-modal').style.display='flex'">+ Add Stocks</button>
                     </div>
                 `;
                 return;
@@ -1148,9 +1196,9 @@
                         <!-- Delete Button -->
                         <button onclick="deleteInvestment('${h.id}', 'holdings')" style="position: absolute; right: 8px; top: 8px; background: rgba(255,0,0,0.1); color: var(--danger); border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;" title="Delete Holding">🗑️</button>
                         
-                        <div style="display: flex; justify-content: space-between; padding-right: 20px;">
-                            <h4 style="margin:0;">${h.name || h.symbol}</h4>
-                            <span style="font-size: 0.7rem; background: var(--groww-bg); padding: 2px 6px; border-radius: 4px;">${h.symbol}</span>
+                        <div style="display: flex; justify-content: space-between; padding-right: 28px;">
+                            <h4 style="margin:0; font-size: 1.1rem; color: var(--text);">${h.name || h.symbol}</h4>
+                            <span style="font-size: 0.75rem; background: var(--bg); padding: 4px 10px; border-radius: 8px; font-weight: 700; color: var(--primary); border: 1px solid var(--border);">${h.symbol}</span>
                         </div>
                         <p style="font-size:0.8rem; color:var(--muted); margin-top: 4px;">${h.quantity} Qty • Avg: ₹${(h.avgPrice || 0).toLocaleString()}</p>
                         <div style="margin-top:16px; display:flex; justify-content:space-between; align-items:flex-end;">
@@ -1183,31 +1231,31 @@
             const silverVal = silverHolding ? silverHolding.quantity * silverPrice : 0;
 
             container.innerHTML = `
-                <div class="instrument-card" style="position: relative;">
-                  ${goldHolding ? `<button onclick="deleteInvestment('${goldHolding.id}', 'holdings')" style="position: absolute; right: 8px; top: 8px; background: rgba(255,0,0,0.1); color: var(--danger); border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;" title="Delete Gold">🗑️</button>` : ''}
-                  <div style="display:flex; justify-content:space-between; align-items:center; padding-right: 20px;">
-                    <h4>Gold (24K)</h4> 
+                <div class="instrument-card" style="position: relative; overflow: hidden;">
+                  ${goldHolding ? `<button onclick="deleteInvestment('${goldHolding.id}', 'holdings')" style="position: absolute; right: 8px; top: 8px; background: rgba(255,0,0,0.1); color: var(--danger); border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; z-index: 10;" title="Delete Gold">🗑️</button>` : ''}
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding-right: 28px; position: relative; z-index: 1;">
+                    <h4 style="font-size: 1.1rem; color: var(--text);">Gold (24K)</h4> 
                     ${goldHolding ? `<span class="return-badge">Owning ₹${Math.round(goldVal).toLocaleString()}</span>` : ''}
                   </div>
-                  <p style="font-size:0.8rem; color:var(--muted);">Digital Gold • Safe Haven</p>
-                  <p style="font-size:0.7rem; color:var(--muted); margin:4px 0 12px 0;">${goldIsLive ? `🟢 ${contextData.investments.prices['GOLD'].source || 'Live'}` : '🟡 Cached Data'}</p>
-                  <div style="margin-top:12px;">
-                    <span style="font-size:1.5rem; font-weight:800;">₹${Math.round(PriceService.formatGoldPrice(goldPrice)).toLocaleString('en-IN')}</span> <span style="font-size:0.75rem; color:var(--muted);">/10g</span>
-                    ${goldHolding ? `<div style="margin-top:8px; font-weight:600; color:var(--groww-green);">Holdings: ${goldHolding.quantity} g</div>` : ''}
+                  <p style="font-size:0.85rem; color:var(--muted); font-weight: 500;">Digital Gold • Safe Haven</p>
+                  <p style="font-size:0.75rem; color:var(--muted); margin:6px 0 16px 0; font-weight: 600;">${goldIsLive ? `🟢 ${contextData.investments.prices['GOLD'].source || 'Live'}` : '🟡 Cached Data'}</p>
+                  <div style="margin-top:12px; position: relative; z-index: 1;">
+                    <span style="font-size:1.8rem; font-weight:800; color: #F59E0B;">₹${Math.round(PriceService.formatGoldPrice(goldPrice)).toLocaleString('en-IN')}</span> <span style="font-size:0.8rem; color:var(--muted); font-weight: 600;">/10g</span>
+                    ${goldHolding ? `<div style="margin-top:12px; font-weight:700; color: #00D09C; background: rgba(0, 208, 156, 0.1); padding: 6px 12px; border-radius: 8px; display: inline-block;">Holdings: ${goldHolding.quantity} g</div>` : ''}
                   </div>
                 </div>
 
-                <div class="instrument-card" style="position: relative;">
-                  ${silverHolding ? `<button onclick="deleteInvestment('${silverHolding.id}', 'holdings')" style="position: absolute; right: 8px; top: 8px; background: rgba(255,0,0,0.1); color: var(--danger); border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;" title="Delete Silver">🗑️</button>` : ''}
-                  <div style="display:flex; justify-content:space-between; align-items:center; padding-right: 20px;">
-                    <h4>Silver</h4> 
+                <div class="instrument-card" style="position: relative; overflow: hidden;">
+                  ${silverHolding ? `<button onclick="deleteInvestment('${silverHolding.id}', 'holdings')" style="position: absolute; right: 8px; top: 8px; background: rgba(255,0,0,0.1); color: var(--danger); border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; z-index: 10;" title="Delete Silver">🗑️</button>` : ''}
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding-right: 28px; position: relative; z-index: 1;">
+                    <h4 style="font-size: 1.1rem; color: var(--text);">Silver</h4> 
                     ${silverHolding ? `<span class="return-badge">Owning ₹${Math.round(silverVal).toLocaleString()}</span>` : ''}
                   </div>
-                  <p style="font-size:0.8rem; color:var(--muted);">Industrial • Precious</p>
-                  <p style="font-size:0.7rem; color:var(--muted); margin:4px 0 12px 0;">${silverIsLive ? `🟢 ${contextData.investments.prices['SILVER'].source || 'Live'}` : '🟡 Cached Data'}</p>
-                  <div style="margin-top:12px;">
-                    <span style="font-size:1.5rem; font-weight:800;">₹${Math.round(PriceService.formatSilverPrice(silverPrice)).toLocaleString('en-IN')}</span> <span style="font-size:0.75rem; color:var(--muted);">/kg</span>
-                    ${silverHolding ? `<div style="margin-top:8px; font-weight:600; color:var(--groww-green);">Holdings: ${silverHolding.quantity} g</div>` : ''}
+                  <p style="font-size:0.85rem; color:var(--muted); font-weight: 500;">Industrial • Precious</p>
+                  <p style="font-size:0.75rem; color:var(--muted); margin:6px 0 16px 0; font-weight: 600;">${silverIsLive ? `🟢 ${contextData.investments.prices['SILVER'].source || 'Live'}` : '🟡 Cached Data'}</p>
+                  <div style="margin-top:12px; position: relative; z-index: 1;">
+                    <span style="font-size:1.8rem; font-weight:800; color: #94A3B8;">₹${Math.round(PriceService.formatSilverPrice(silverPrice)).toLocaleString('en-IN')}</span> <span style="font-size:0.8rem; color:var(--muted); font-weight: 600;">/kg</span>
+                    ${silverHolding ? `<div style="margin-top:12px; font-weight:700; color: #00D09C; background: rgba(0, 208, 156, 0.1); padding: 6px 12px; border-radius: 8px; display: inline-block;">Holdings: ${silverHolding.quantity} g</div>` : ''}
                   </div>
                 </div>
             `;
@@ -1225,9 +1273,9 @@
                 html += `
                 <div class="instrument-card" style="position: relative;">
                   <button onclick="deleteInvestment('${s.id}', 'sipPlans')" style="position: absolute; right: 8px; top: 8px; background: rgba(255,0,0,0.1); color: var(--danger); border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;" title="Delete SIP">🗑️</button>
-                  <div style="display:flex; justify-content:space-between; padding-right: 20px;">
-                    <h4>SIP: ${s.name}</h4>
-                    <span style="font-size:0.8rem; background:rgba(0,0,0,0.05); padding:2px 8px; border-radius:4px;">Mutual Fund</span>
+                  <div style="display:flex; justify-content:space-between; padding-right: 28px;">
+                    <h4 style="font-size: 1.1rem; color: var(--text);">SIP: ${s.name}</h4>
+                    <span style="font-size:0.75rem; background:var(--glass); border: 1px solid var(--border); padding:4px 10px; border-radius:8px; font-weight: 700; color: var(--muted);">Mutual Fund</span>
                   </div>
                   <p style="font-size:0.8rem; color:var(--muted);">Monthly Investment: ₹${s.monthlyAmount.toLocaleString('en-IN')}</p>
                   <div style="margin-top:12px;">
@@ -1245,14 +1293,14 @@
                 html += `
                 <div class="instrument-card" style="position: relative;">
                   <button onclick="deleteInvestment('${fd.id}', 'fdAccounts')" style="position: absolute; right: 8px; top: 8px; background: rgba(255,0,0,0.1); color: var(--danger); border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;" title="Delete FD">🗑️</button>
-                  <div style="display:flex; justify-content:space-between; padding-right: 20px;">
-                    <h4>FD: ${fd.name}</h4>
-                    <span style="font-size:0.8rem; background:rgba(76, 175, 80, 0.1); color:#4CAF50; padding:2px 8px; border-radius:4px;">${fd.interestRate}% Return</span>
+                  <div style="display:flex; justify-content:space-between; padding-right: 28px;">
+                    <h4 style="font-size: 1.1rem; color: var(--text);">FD: ${fd.name}</h4>
+                    <span style="font-size:0.75rem; background:rgba(76, 175, 80, 0.1); color:#10B981; padding:4px 10px; border-radius:8px; font-weight: 700;">${fd.interestRate}% Return</span>
                   </div>
-                  <p style="font-size:0.8rem; color:var(--muted);">Principal: ₹${fd.principal.toLocaleString('en-IN')}</p>
-                  <div style="margin-top:12px;">
-                     <div style="font-size:0.9rem; font-weight:700;">Maturity: ₹${fd.maturityValue.toLocaleString()}</div>
-                     <span style="font-size:0.7rem; color:var(--muted);">Fixed Deposit</span>
+                  <p style="font-size:0.85rem; color:var(--muted); font-weight: 500; margin-top: 4px;">Principal: ₹${fd.principal.toLocaleString('en-IN')}</p>
+                  <div style="margin-top:16px;">
+                     <div style="font-size:1rem; font-weight:800; color: #10B981;">Maturity: ₹${fd.maturityValue.toLocaleString()}</div>
+                     <span style="font-size:0.75rem; color:var(--muted); font-weight: 500;">Fixed Deposit</span>
                   </div>
                 </div>`;
             });
@@ -1263,14 +1311,14 @@
                 html += `
                 <div class="instrument-card" style="position: relative;">
                   <button onclick="deleteInvestment('${rd.id}', 'rdAccounts')" style="position: absolute; right: 8px; top: 8px; background: rgba(255,0,0,0.1); color: var(--danger); border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;" title="Delete RD">🗑️</button>
-                  <div style="display:flex; justify-content:space-between; padding-right: 20px;">
-                    <h4>RD: ${rd.name}</h4>
-                    <span style="font-size:0.8rem; background:rgba(33, 150, 243, 0.1); color:#2196F3; padding:2px 8px; border-radius:4px;">Recurring</span>
+                  <div style="display:flex; justify-content:space-between; padding-right: 28px;">
+                    <h4 style="font-size: 1.1rem; color: var(--text);">RD: ${rd.name}</h4>
+                    <span style="font-size:0.75rem; background:rgba(33, 150, 243, 0.1); color:#2196F3; padding:4px 10px; border-radius:8px; font-weight: 700;">Recurring</span>
                   </div>
-                  <p style="font-size:0.8rem; color:var(--muted);">Current Balance: ₹${rd.currentBalance.toLocaleString('en-IN')}</p>
-                  <div style="margin-top:12px;">
-                     <div class="savings-bar-container"><div class="savings-bar" style="background:#2196F3; width: ${perc}%;"></div></div>
-                     <span style="font-size:0.75rem; color:var(--muted);">${perc.toFixed(0)}% completed</span>
+                  <p style="font-size:0.85rem; color:var(--muted); font-weight: 500; margin-top: 4px;">Current Balance: ₹${rd.currentBalance.toLocaleString('en-IN')}</p>
+                  <div style="margin-top:16px;">
+                     <div class="savings-bar-container" style="background: rgba(255,255,255,0.05); height: 8px;"><div class="savings-bar" style="background: linear-gradient(90deg, #2196F3, #64B5F6); width: ${perc}%;"></div></div>
+                     <span style="font-size:0.75rem; color:var(--muted); font-weight: 600;">${perc.toFixed(0)}% completed</span>
                   </div>
                 </div>`;
             });
@@ -1284,9 +1332,9 @@
                 try {
                     const uid = currentUser ? currentUser.uid : null;
                     await DBService.deleteData(uid, collection, id);
-                    alert('Investment deleted successfully.');
+                    showToast('Investment deleted successfully.', 'info');
                 } catch (err) {
-                    alert('Failed to delete: ' + err.message);
+                    showToast('Failed to delete: ' + err.message, 'error');
                 }
             }
         };

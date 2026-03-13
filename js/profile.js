@@ -4,6 +4,7 @@ import { DBService } from './db-service.js';
 import { GamificationService } from './gamification-service.js';
 import { db } from './firebase-config.js';
 import { doc, setDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { showToast } from './toast.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     AuthService.onUserChange(async (user) => {
@@ -140,8 +141,7 @@ async function initTelegramSync(uid) {
             const errorMsg = err.code === 'permission-denied'
                 ? 'Permission Denied: Please check your Firebase Firestore rules for "syncCodes" collection.'
                 : err.message;
-
-            alert('Sync Error: ' + errorMsg);
+            showToast('Sync Error: ' + errorMsg, 'error', 5000);
         }
     });
 }

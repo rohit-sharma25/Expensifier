@@ -10,18 +10,20 @@ export class InvestmentEngine {
         let dailyGain = 0;
 
         holdings.forEach(holding => {
+            const qty = holding.quantity || 0;
+            const avg = holding.avgPrice || 0;
             const priceData = cachedPrices[holding.symbol];
-            const currentPrice = (priceData && typeof priceData === 'object' ? priceData.price : priceData) || holding.avgPrice;
-            const prevClose = (priceData && typeof priceData === 'object' ? priceData.prevClose : holding.prevClose) || holding.avgPrice;
+            const currentPrice = (priceData && typeof priceData === 'object' ? priceData.price : priceData) || avg;
+            const prevClose = (priceData && typeof priceData === 'object' ? priceData.prevClose : holding.prevClose) || avg;
 
-            const marketValue = holding.quantity * currentPrice;
-            const costBasis = holding.quantity * holding.avgPrice;
+            const marketValue = qty * currentPrice;
+            const costBasis = qty * avg;
 
             totalValue += marketValue;
             totalCost += costBasis;
 
             // Daily gain: (Current Price - Previous Close) * Quantity
-            dailyGain += (currentPrice - prevClose) * holding.quantity;
+            dailyGain += (currentPrice - prevClose) * qty;
         });
 
         const totalGain = totalValue - totalCost;
@@ -134,6 +136,75 @@ export class InvestmentEngine {
             diversification: portfolioMetrics.diversificationScore,
             savingsProgress: savingsMetrics.completionStatus,
             riskProfile: portfolioMetrics.diversificationScore < 40 ? 'High' : 'Low'
+        };
+    }
+
+    /**
+     * Smart SIP Booster Logic
+     * Suggests a SIP increase based on market dips or extra savings.
+     */
+    static calculateSmartSIPBoost(sipPlans, financialState, marketPrices) {
+        // Provide a default "Starter SIP" of 2000 if none exist
+        const hasExistingSIP = sipPlans && sipPlans.length > 0;
+        const currentAmount = hasExistingSIP ? sipPlans[0].monthlyAmount : 2000;
+        let suggestedBoost = 0;
+        let reasons = [];
+
+        // 1. Market Dip Detection
+        const marketDip = Object.values(marketPrices).some(p => p.changePercent < -1.5);
+        if (marketDip) {
+            suggestedBoost += currentAmount * 0.5;
+            reasons.push("Market dip detected: Low prices offer high recovery potential.");
+        }
+
+        // 2. Savings Surplus Detection
+        if (financialState.safetyLevel === 'Stable' && financialState.balanceLeft > (financialState.monthExpenses * 0.2)) {
+            const extraSavingsBoost = Math.min(2000, financialState.balanceLeft * 0.1);
+            suggestedBoost += extraSavingsBoost;
+            if (hasExistingSIP) {
+                reasons.push("Healthy savings detected: You have extra capital to invest.");
+            } else {
+                reasons.push("Healthy savings detected: Start your investment journey today!");
+            }
+        }
+
+        // Round to nearest 500
+        suggestedBoost = Math.ceil(suggestedBoost / 500) * 500;
+
+        // If no boost logic triggered but no SIP exists, suggest starting one with the base amount
+        if (suggestedBoost === 0 && !hasExistingSIP) {
+            suggestedBoost = 0; // Just keep currentAmount as suggestion
+        } else if (suggestedBoost === 0) {
+            return null;
+        }
+
+        return {
+            isStarter: !hasExistingSIP,
+            currentAmount,
+            boostedAmount: currentAmount + suggestedBoost,
+            suggestedIncrease: suggestedBoost,
+            reasons: reasons,
+            insight: reasons[0] || (hasExistingSIP ? "AI suggests boosting your SIP for better growth." : "Start your wealth building journey with a Smart SIP.")
+        };
+    }
+
+    /**
+     * Calculates future growth for comparison.
+     */
+    static calculateFutureGrowth(monthlyAmount, rate = 12, years = 15) {
+        const monthlyRate = rate / 100 / 12;
+        const months = years * 12;
+        
+        // Final Value = P * [((1 + i)^n - 1) / i] * (1 + i)
+        const finalValue = monthlyAmount * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) * (1 + monthlyRate);
+        const totalInvested = monthlyAmount * months;
+        const returns = finalValue - totalInvested;
+
+        return {
+            totalInvested,
+            finalValue,
+            returns,
+            years
         };
     }
 }

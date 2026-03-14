@@ -9,18 +9,18 @@
 
 // Default chart colors based on theme
 export const chartColors = {
-    primary: '#6c5ce7',
-    primaryLight: '#a29bfe',
-    success: '#2ecc71',
-    danger: '#ff6b81',
-    warning: '#ffc107',
-    info: '#00f3ff',
-    muted: '#8b8ca1',
+    primary: '#5B6CF2',
+    primaryLight: '#818CF8',
+    success: '#10B981',
+    danger: '#EF4444',
+    warning: '#F59E0B',
+    info: '#06B6D4',
+    muted: '#9CA3AF',
     gradient: {
-        primary: ['#6c5ce7', '#a29bfe'],
-        success: ['#2ecc71', '#27ae60'],
-        danger: ['#ff6b81', '#ee5a6f'],
-        info: ['#00f3ff', '#00d4ff']
+        primary: ['#5B6CF2', 'rgba(91, 108, 242, 0.1)'],
+        success: ['#10B981', 'rgba(16, 185, 129, 0.1)'],
+        danger: ['#EF4444', 'rgba(239, 68, 68, 0.1)'],
+        info: ['#06B6D4', 'rgba(6, 182, 212, 0.1)']
     }
 };
 
@@ -33,23 +33,28 @@ export const defaultChartOptions = {
             display: true,
             position: 'bottom',
             labels: {
-                color: '#000000',
+                color: '#E5E7EB',
                 padding: 15,
                 font: {
                     family: 'Inter',
-                    size: 12
+                    size: 12,
+                    weight: '600'
                 }
             }
         },
         tooltip: {
-            backgroundColor: 'rgba(17, 18, 26, 0.95)',
-            titleColor: '#f5f5f7',
-            bodyColor: '#d1d1d6',
-            borderColor: 'rgba(108, 92, 231, 0.3)',
+            backgroundColor: 'rgba(15, 18, 32, 0.9)',
+            titleColor: '#F8FAFC',
+            bodyColor: '#CBD5E1',
+            borderColor: 'rgba(91, 108, 242, 0.4)',
             borderWidth: 1,
             padding: 12,
-            cornerRadius: 8,
-            displayColors: true
+            cornerRadius: 12,
+            displayColors: true,
+            boxPadding: 6,
+            usePointStyle: true,
+            titleFont: { family: 'Inter', size: 13, weight: '700' },
+            bodyFont: { family: 'Inter', size: 12 }
         }
     }
 };

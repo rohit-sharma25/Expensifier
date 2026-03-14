@@ -23,11 +23,11 @@ document.addEventListener('keydown', (e) => {
     if (overlay) overlay.style.display = 'none';
   }
   
-  // 'n' to focus the Add Entry amount input
+  // 'n' to focus the Add Entry description input
   if (e.key.toLowerCase() === 'n' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
     e.preventDefault();
-    const amountInput = document.getElementById('expense-amount');
-    if (amountInput) amountInput.focus();
+    const descInput = document.getElementById('expense-desc');
+    if (descInput) descInput.focus();
   }
 });
 
@@ -43,6 +43,8 @@ let trendChart = null;
 let trajectoryChart = null;
 let lastAiUpdate = 0;
 let currentEngineState = { state: {}, risks: {}, behavior: {} };
+let trendRange = 7; // Default chart range
+let selectedIds = new Set();
 
 // DOM
 const userName = document.getElementById('user-name');
@@ -93,6 +95,53 @@ if (categorySelect) {
   });
 }
 
+// Smart Category Prediction
+const categoryKeywords = {
+  'Food & Grocery': ['zomato', 'swiggy', 'blinkit', 'zepto', 'dinner', 'lunch', 'breakfast', 'restaurant', 'mcdonalds', 'starbucks', 'grocery', 'bigbasket'],
+  'Traveling': ['uber', 'ola', 'rapido', 'indigo', 'air india', 'train', 'irctc', 'petrol', 'diesel', 'fuel', 'cab', 'taxi', 'hotel'],
+  'Shopping': ['amazon', 'flipkart', 'myntra', 'ajio', 'clothing', 'electronics', 'shopping', 'nike', 'adidas'],
+  'Bill & Subscription': ['netflix', 'spotify', 'recharge', 'wifi', 'electricity', 'water', 'gas', 'bill'],
+  'LLM Models': ['chatgpt', 'openai', 'claude', 'anthropic', 'grok', 'gemini', 'perplexity'],
+  'Investment': ['stocks', 'mutual fund', 'crypto', 'bitcoin', 'zerodha', 'groww', 'gold']
+};
+
+if (descInput) {
+  descInput.addEventListener('input', (e) => {
+    const text = e.target.value.toLowerCase();
+    if (text.length < 3) return;
+
+    for (const [cat, keywords] of Object.entries(categoryKeywords)) {
+      if (keywords.some(kw => text.includes(kw))) {
+        if (!categorySelect.value) { // Only predict if user hasn't selected manually
+          categorySelect.value = cat;
+          categorySelect.dispatchEvent(new Event('change'));
+          break;
+        }
+      }
+    }
+  });
+
+  // Real-time validation style
+  descInput.addEventListener('blur', (e) => {
+    if (e.target.value.trim().length === 0) {
+      e.target.style.borderColor = 'var(--danger)';
+    } else {
+      e.target.style.borderColor = 'var(--border)';
+    }
+  });
+}
+
+if (amountInput) {
+  amountInput.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    if (val <= 0) {
+      e.target.style.color = 'var(--danger)';
+    } else {
+      e.target.style.color = 'var(--primary-light)';
+    }
+  });
+}
+
 // Preserve original expense options so we can restore when switching modes
 const originalCategoryOptions = categorySelect ? categorySelect.innerHTML : '';
 const originalSubCategoryOptions = subCategorySelect ? subCategorySelect.innerHTML : '';
@@ -128,9 +177,19 @@ function restoreExpenseCategories() {
   subCategorySelect.innerHTML = originalSubCategoryOptions;
 }
 
+let unsubFinances = null;
+let unsubBudget = null;
+
 AuthService.onUserChange((user) => {
   currentUser = user;
+  
   if (user) {
+    // if we were previously in local-only mode, disable it now that auth succeeded
+    if (AuthService.isLocalOnly()) {
+      AuthService.setLocalOnly(false);
+      console.log('🔁 Exiting local-only mode after login');
+    }
+
     if (userInfoSection) userInfoSection.classList.remove('hidden');
     if (loggedOutView) loggedOutView.classList.add('hidden');
     if (userName) userName.textContent = user.displayName || "Unknown User";
@@ -139,11 +198,10 @@ AuthService.onUserChange((user) => {
       userPhoto.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=5B6CF2&color=fff`;
     }
 
-    // 🔔 Request notification permission early (before any alerts are triggered)
+    // 🔔 Request notification permission early
     if (NotificationService.isSupported() && Notification.permission === 'default') {
       NotificationService.requestPermission()
         .then(permission => {
-          console.log('📢 Notification permission:', permission);
           if (permission === 'granted') {
             NotificationService.show('Notifications Enabled', 'You\'ll receive alerts about your spending and investments.');
           }
@@ -151,14 +209,29 @@ AuthService.onUserChange((user) => {
         .catch(err => console.warn('⚠️ Notification permission request failed:', err));
     }
   } else {
-    if (userInfoSection) userInfoSection.classList.add('hidden');
-    if (loggedOutView) loggedOutView.classList.remove('hidden');
-    if (userName) userName.textContent = AuthService.isLocalOnly() ? "Guest Mode" : "Sign in";
-    if (userPhoto) userPhoto.src = "https://ui-avatars.com/api/?name=Guest";
+    const isLocal = AuthService.isLocalOnly();
+    if (isLocal) {
+      if (userInfoSection) userInfoSection.classList.remove('hidden');
+      if (loggedOutView) loggedOutView.classList.add('hidden');
+      if (userName) userName.textContent = "Guest Mode";
+      if (userPhoto) userPhoto.src = "https://ui-avatars.com/api/?name=Guest&background=5B6CF2&color=fff";
+    } else {
+      if (userInfoSection) userInfoSection.classList.add('hidden');
+      if (loggedOutView) loggedOutView.classList.remove('hidden');
+    }
   }
 
-  // Reactive Subscriptions
-  DBService.subscribe(user?.uid, 'finances', (data) => {
+  // Determine the uid to use (null = localStorage / guest mode)
+  const uid = user ? user.uid : (AuthService.isLocalOnly() ? null : null);
+
+  // ✅ Clear old subscriptions before setting up new ones
+  if (unsubFinances) { try { unsubFinances(); } catch(e) {} unsubFinances = null; }
+  if (unsubBudget) { try { unsubBudget(); } catch(e) {} unsubBudget = null; }
+
+  // ✅ Set up subscriptions with correct uid
+  console.log('📡 Setting up subscriptions for uid:', uid || 'local');
+
+  unsubFinances = DBService.subscribe(uid, 'finances', (data) => {
     finances = data;
 
     // GEN-3 Architecture: Run Engines
@@ -166,11 +239,11 @@ AuthService.onUserChange((user) => {
     const risks = FinancialEngine.runRiskEngine(state, monthlyBudget);
     const behavior = FinancialEngine.runBehaviorModel(finances);
 
-    // Save state objects for AI and UI (Async)
-    const uid = AuthService.isLocalOnly() ? null : user?.uid;
-    DBService.saveData(uid, 'engineState', 'financialState', state);
-    DBService.saveData(uid, 'engineState', 'riskSignals', risks);
-    DBService.saveData(uid, 'engineState', 'behaviorProfile', behavior);
+    // Save state objects for AI and UI (Async, non-blocking)
+    const saveUid = user ? user.uid : null;
+    DBService.saveData(saveUid, 'engineState', 'financialState', state);
+    DBService.saveData(saveUid, 'engineState', 'riskSignals', risks);
+    DBService.saveData(saveUid, 'engineState', 'behaviorProfile', behavior);
 
     // Register state locally for Chat
     currentEngineState = { state, risks, behavior };
@@ -183,7 +256,7 @@ AuthService.onUserChange((user) => {
     updateHeaderLevel();
   });
 
-  DBService.subscribe(user?.uid, 'monthlyBudget', (data) => {
+  unsubBudget = DBService.subscribe(uid, 'monthlyBudget', (data) => {
     const settings = data.find(d => d.id === 'settings');
     monthlyBudget = settings ? settings.value : null;
     if (budgetInput) {
@@ -205,6 +278,12 @@ AuthService.onUserChange((user) => {
     const behavior = FinancialEngine.runBehaviorModel(finances);
     updateAISmartDashboard(state, risks, behavior);
   });
+
+  // Auto-set today's date
+  const dateInput = document.getElementById('expense-date');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = todayStr();
+  }
 });
 
 let filterCategory = "";
@@ -227,6 +306,86 @@ if (searchInputEl) {
   };
 }
 
+// Bulk Action Listeners
+function initBulkActions() {
+  const masterSelect = document.getElementById('master-select');
+  const bulkBar = document.getElementById('bulk-actions-bar');
+  const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+  const bulkCancelBtn = document.getElementById('bulk-cancel-btn');
+  const selectedCountText = document.getElementById('selected-count');
+
+  if (!masterSelect) return;
+
+  masterSelect.onchange = (e) => {
+    const checkboxes = document.querySelectorAll('.bulk-select');
+    selectedIds.clear();
+    checkboxes.forEach(cb => {
+      cb.checked = e.target.checked;
+      if (cb.checked) selectedIds.add(cb.dataset.id);
+    });
+    updateBulkBar();
+  };
+
+  document.addEventListener('change', (e) => {
+    if (e.target.classList.contains('bulk-select')) {
+      if (e.target.checked) selectedIds.add(e.target.dataset.id);
+      else selectedIds.delete(e.target.dataset.id);
+      updateBulkBar();
+    }
+  });
+
+  function updateBulkBar() {
+    if (selectedIds.size > 0) {
+      bulkBar?.classList.remove('hidden');
+      if (selectedCountText) selectedCountText.textContent = `${selectedIds.size} transactions selected`;
+    } else {
+      bulkBar?.classList.add('hidden');
+    }
+  }
+
+  if (bulkCancelBtn) {
+    bulkCancelBtn.onclick = () => {
+      selectedIds.clear();
+      masterSelect.checked = false;
+      document.querySelectorAll('.bulk-select').forEach(cb => cb.checked = false);
+      updateBulkBar();
+    };
+  }
+
+  if (bulkDeleteBtn) {
+    bulkDeleteBtn.onclick = async () => {
+      if (confirm(`Confirm bulk delete of ${selectedIds.size} transactions?`)) {
+        const idsToDelete = Array.from(selectedIds);
+        bulkDeleteBtn.disabled = true;
+        bulkDeleteBtn.textContent = '🗑️ Deleting...';
+        
+        for (const id of idsToDelete) {
+          await DBService.deleteData(currentUser?.uid, 'finances', id);
+        }
+        
+        selectedIds.clear();
+        masterSelect.checked = false;
+        bulkDeleteBtn.disabled = false;
+        bulkDeleteBtn.textContent = '🗑️ Delete Selected';
+        updateBulkBar();
+        showToast('✅ Bulk deletion complete', 'success');
+      }
+    };
+  }
+}
+initBulkActions();
+
+// Trend Filter Listeners
+const trendFilterBtns = document.querySelectorAll('#trend-filter .filter-btn');
+trendFilterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    trendFilterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    trendRange = parseInt(btn.dataset.range);
+    renderCharts();
+  });
+});
+
 function renderFinances() {
   if (!tableBody) return;
   tableBody.innerHTML = "";
@@ -238,27 +397,33 @@ function renderFinances() {
   });
 
   if (filtered.length === 0) {
-    tableBody.innerHTML = '<tr><td colspan="8" class="muted center" style="padding:20px;">No matching entries found.</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="9" class="muted center" style="padding:20px;">No matching entries found.</td></tr>';
   } else {
-    filtered.slice().sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO)).forEach((f, idx) => {
+    // Basic pagination - show last 20 by default
+    const displayCount = window.currentDisplayCount || 20;
+    const sorted = filtered.slice().sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
+    const paginated = sorted.slice(0, displayCount);
+
+    paginated.forEach((f, idx) => {
       const tr = document.createElement("tr");
       tr.style.borderBottom = "1px solid var(--border)";
       tr.innerHTML = `
-        <td style="padding:10px;">${idx + 1}</td>
-        <td style="padding:10px; font-weight:600; color:${f.type === 'income' ? 'var(--success)' : 'var(--danger)'}">
+        <td data-label="Select" style="padding:10px;"><input type="checkbox" class="bulk-select" data-id="${f.id}" aria-label="Select transaction"></td>
+        <td data-label="S.N" style="padding:10px;">${idx + 1}</td>
+        <td data-label="Amount" style="padding:10px; font-weight:600; color:${f.type === 'income' ? 'var(--success)' : 'var(--danger)'}">
           ${f.type === 'income' ? '+' : '-'} ₹${Number(f.amount).toFixed(2)}
         </td>
-        <td style="padding:10px;">${f.category || (f.type === 'income' ? 'Income' : 'Misc')}</td>
-        <td style="padding:10px;" class="muted">${f.subCategory || '-'}</td>
-        <td style="padding:10px;" class="muted">${f.dateISO}</td>
-        <td style="padding:10px;">
+        <td data-label="Category" style="padding:10px;">${f.category || (f.type === 'income' ? 'Income' : 'Misc')}</td>
+        <td data-label="Sub Category" style="padding:10px;" class="muted">${f.subCategory || '-'}</td>
+        <td data-label="Date" style="padding:10px;" class="muted">${f.dateISO}</td>
+        <td data-label="Mode" style="padding:10px;">
           <span style="padding: 2px 6px; background: rgba(0,0,0,0.05); border-radius: 4px; font-size: 0.8rem;">
             ${f.mode || 'Cash'}
           </span>
         </td>
-        <td style="padding:10px;">${f.desc}</td>
-        <td style="padding:10px;">
-          <button class="btn accent" style="background:rgba(255,0,0,0.1); color:var(--danger); padding:4px 8px; font-size:0.75rem; border-radius: 6px; border:none; cursor:pointer;">
+        <td data-label="Description" style="padding:10px;">${f.desc}</td>
+        <td data-label="Action" style="padding:10px;">
+          <button class="btn accent" style="background:rgba(255,0,0,0.1); color:var(--danger); padding:4px 8px; font-size:0.75rem; border-radius: 6px; border:none; cursor:pointer;" aria-label="Delete transaction">
             Delete
           </button>
         </td>
@@ -266,6 +431,18 @@ function renderFinances() {
       tr.querySelector('button').onclick = () => deleteEntry(f.id);
       tableBody.appendChild(tr);
     });
+
+    if (sorted.length > displayCount) {
+      const loadMoreRow = document.createElement('tr');
+      loadMoreRow.innerHTML = `<td colspan="9" style="text-align:center; padding:20px;">
+        <button id="load-more-btn" class="btn btn-secondary" style="font-size:0.85rem;">View More Transactions (${sorted.length - displayCount} remaining)</button>
+      </td>`;
+      tableBody.appendChild(loadMoreRow);
+      document.getElementById('load-more-btn').onclick = () => {
+        window.currentDisplayCount = (window.currentDisplayCount || 20) + 20;
+        renderFinances();
+      };
+    }
   }
   updateFinanceSummary();
   updateBudgetUI();
@@ -382,14 +559,14 @@ function renderCharts() {
   // Trend Chart
   const trendCanvas = document.getElementById('trend-chart');
   if (trendCanvas && typeof Chart !== 'undefined') {
-    const trend = getSpendingTrend(finances, 7);
+    const trend = getSpendingTrend(finances, trendRange); // Use dynamic range
     const labels = trend.map(t => t.label);
     const data = trend.map(t => t.amount);
 
     if (trendChart) destroyChart(trendChart);
 
     if (labels.length > 0) {
-      trendChart = createLineChart(trendCanvas, data, labels, 'Daily Spending');
+      trendChart = createLineChart(trendCanvas, data, labels, `${trendRange}-Day Spending Trend`);
     }
   }
 }
@@ -430,6 +607,14 @@ async function updateAISmartDashboard(state, risks, behavior) {
 if (form) {
   form.onsubmit = async (e) => {
     e.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '⏳ Recording...';
+      submitBtn.dataset.originalText = originalText;
+    }
+
     const desc = descInput.value.trim();
     const amount = parseFloat(amountInput.value);
     const type = toggleIncome.classList.contains('active') ? 'income' : 'expense';
@@ -441,11 +626,19 @@ if (form) {
 
     if (!desc || isNaN(amount) || amount <= 0) {
       showToast('Please enter a valid description and amount', 'error');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = submitBtn.dataset.originalText;
+      }
       return;
     }
 
     if ((!category || !subCategory)) {
       showToast('Please select category and sub-category', 'error');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = submitBtn.dataset.originalText;
+      }
       return;
     }
 
@@ -462,44 +655,54 @@ if (form) {
       timestamp: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}Z`; })()
     };
 
-    await DBService.saveData(currentUser?.uid, 'finances', id, expenseData);
-
-    // immediately update local cache/UI in case storage event is slow
-    finances.push(expenseData);
-    renderFinances();
-
-    // Send Telegram notification — only if user has linked their Telegram account
     try {
-      let telegramChatId = null;
-      if (currentUser?.uid) {
-        const { db } = await import('./js/firebase-config.js');
-        const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js");
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        telegramChatId = userDoc.exists() ? (userDoc.data()?.telegramId ?? null) : null;
+      await DBService.saveData(currentUser?.uid, 'finances', id, expenseData);
+
+      // immediately update local cache/UI in case storage event is slow
+      finances.push(expenseData);
+      renderFinances();
+
+      // Send Telegram notification — only if user has linked their Telegram account
+      try {
+        let telegramChatId = null;
+        if (currentUser?.uid) {
+          const { db } = await import('./js/firebase-config.js');
+          const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js");
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          telegramChatId = userDoc.exists() ? (userDoc.data()?.telegramId ?? null) : null;
+        }
+        await TelegramService.sendNotification(amount, type, category, desc, subCategory, telegramChatId);
+      } catch (err) {
+        console.warn("Telegram notification error (non-critical):", err);
       }
-      await TelegramService.sendNotification(amount, type, category, desc, subCategory, telegramChatId);
+
+      // Gamification: Award 10 XP
+      try {
+        const { GamificationService } = await import('./js/gamification-service.js');
+        await GamificationService.awardPoints(10);
+        updateHeaderLevel();
+      } catch (err) {
+        console.warn("Gamification points not awarded:", err);
+      }
+
+      // Clear form
+      if (descInput) descInput.value = "";
+      if (amountInput) amountInput.value = "";
+      if (categorySelect) categorySelect.value = "";
+      if (subCategorySelect) subCategorySelect.value = "";
+      // Don't clear date to keep UX smooth for multiple entries on same day
+      
+      showToast('✅ Entry added successfully!', 'success');
+      NotificationService.requestPermission();
     } catch (err) {
-      console.warn("Telegram notification error (non-critical):", err);
+      console.error('Failed to save transaction:', err);
+      showToast('Failed to save transaction: ' + err.message, 'error');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = submitBtn.dataset.originalText;
+      }
     }
-
-    // Gamification: Award 10 XP
-    try {
-      const { GamificationService } = await import('./js/gamification-service.js');
-      await GamificationService.awardPoints(10);
-      updateHeaderLevel();
-    } catch (err) {
-      console.warn("Gamification points not awarded:", err);
-    }
-
-    // Clear form
-    if (descInput) descInput.value = "";
-    if (amountInput) amountInput.value = "";
-    if (categorySelect) categorySelect.value = "";
-    if (subCategorySelect) subCategorySelect.value = "";
-    if (dateInput) dateInput.value = "";
-
-    showToast('✅ Entry added successfully!', 'success');
-    NotificationService.requestPermission();
   };
 }
 
@@ -577,8 +780,10 @@ if (toggleExpense) {
     toggleExpense.classList.add('active-expense');
     toggleExpense.classList.remove('active-income');
     toggleIncome.classList.remove('active-expense', 'active-income');
+    toggleExpense.setAttribute('aria-pressed', 'true');
+    toggleIncome.setAttribute('aria-pressed', 'false');
     const title = document.getElementById('entry-form-title');
-    if (title) title.innerHTML = '➕ Add New Expense';
+    if (title) title.innerHTML = '💸 Add New Expense';
     restoreExpenseCategories();
   };
 }
@@ -587,6 +792,8 @@ if (toggleIncome) {
     toggleIncome.classList.add('active-income');
     toggleIncome.classList.remove('active-expense');
     toggleExpense.classList.remove('active-expense', 'active-income');
+    toggleIncome.setAttribute('aria-pressed', 'true');
+    toggleExpense.setAttribute('aria-pressed', 'false');
     const title = document.getElementById('entry-form-title');
     if (title) title.innerHTML = '💰 Add New Income';
     populateCategoriesForIncome();
@@ -606,6 +813,36 @@ AIService.init({
   budget: monthlyBudget,
   engineState: currentEngineState
 }));
+
+// AI Dashboard Toggle Logic
+const aiToggleBtn = document.getElementById('toggle-ai-dashboard');
+const aiDashboard = document.getElementById('ai-smart-dashboard');
+if (aiToggleBtn && aiDashboard) {
+  aiToggleBtn.onclick = () => {
+    const isHidden = aiDashboard.style.display === 'none';
+    aiDashboard.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) aiDashboard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+}
+
+// Mobile Add Expense FAB
+const addFAB = document.getElementById('add-expense-fab');
+if (addFAB) {
+  addFAB.onclick = () => {
+    const formSection = document.querySelector('.expenses-section');
+    if (formSection) formSection.scrollIntoView({ behavior: 'smooth' });
+    const descInput = document.getElementById('expense-desc');
+    if (descInput) setTimeout(() => descInput.focus(), 500);
+  };
+
+  // Show only on mobile
+  const checkMobile = () => {
+    if (window.innerWidth <= 768) addFAB.style.display = 'flex';
+    else addFAB.style.display = 'none';
+  };
+  window.addEventListener('resize', checkMobile);
+  checkMobile();
+}
 
 // Calendar History
 document.getElementById('open-calendar')?.addEventListener('click', () => {

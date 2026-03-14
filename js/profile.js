@@ -4,6 +4,8 @@ import { DBService } from './db-service.js';
 import { GamificationService } from './gamification-service.js';
 import { db } from './firebase-config.js';
 import { doc, setDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { AIService } from './ai-service.js';
+import { FinancialEngine } from './financial-engine.js';
 import { showToast } from './toast.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,6 +15,28 @@ document.addEventListener('DOMContentLoaded', () => {
             await renderGamificationStats();
             await renderFinancialSummary(user.uid);
             await initTelegramSync(user.uid);
+            await initBankSync(user.uid);
+            
+            // Subscribe to finances to keep AI context fresh
+            DBService.subscribe(user.uid, 'finances', (data) => {
+                const state = FinancialEngine.calculateState(data, null);
+                const risks = FinancialEngine.runRiskEngine(state, null);
+                const behavior = FinancialEngine.runBehaviorModel(data);
+                
+                AIService.init({
+                    fab: document.getElementById('ai-chat-fab'),
+                    popup: document.getElementById('ai-chat-popup'),
+                    close: document.getElementById('ai-chat-close'),
+                    input: document.getElementById('ai-chat-input'),
+                    send: document.getElementById('ai-chat-send'),
+                    body: document.getElementById('ai-chat-body')
+                }, () => ({
+                    finances: data,
+                    budget: null, // Budget could be fetched but keeping it simple for profile view
+                    engineState: { state, risks, behavior }
+                }));
+            });
+
         } else {
             const isLocal = AuthService.isLocalOnly();
             if (isLocal) {
@@ -153,3 +177,66 @@ document.getElementById('logout-btn')?.addEventListener('click', async () => {
         window.location.href = 'index.html';
     }
 });
+
+async function initBankSync(uid) {
+    const setupBtn = document.getElementById('setup-bank-sync-btn');
+    const syncDisplay = document.getElementById('sync-key-display');
+    const secretKeyDisplay = document.getElementById('sms-secret-key');
+    const webhookUrlDisplay = document.getElementById('webhook-url');
+    const copyKeyBtn = document.getElementById('copy-secret-btn');
+    const copyUrlBtn = document.getElementById('copy-webhook-btn');
+
+    if (!setupBtn) return;
+
+    // Load existing key if any
+    const profile = await DBService.getUserProfile(uid);
+    if (profile && profile.smsSyncKey) {
+        syncDisplay.style.display = 'block';
+        setupBtn.textContent = 'Regenerate Key';
+        secretKeyDisplay.textContent = profile.smsSyncKey;
+    }
+
+    setupBtn.addEventListener('click', async () => {
+        if (setupBtn.textContent.includes('Regenerate') && !confirm('Regenerating will invalidate your current key. Continue?')) {
+            return;
+        }
+
+        setupBtn.disabled = true;
+        setupBtn.textContent = 'Generating...';
+
+        try {
+            // Generate a secure random alphanumeric key (16 chars)
+            const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            let newKey = "";
+            for (let i = 0; i < 16; i++) {
+                newKey += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+
+            // Save to Firestore
+            await setDoc(doc(db, 'users', uid), {
+                smsSyncKey: newKey
+            }, { merge: true });
+
+            secretKeyDisplay.textContent = newKey;
+            syncDisplay.style.display = 'block';
+            setupBtn.textContent = 'Regenerate Key';
+            showToast('Sync Key Generated!', 'success');
+        } catch (err) {
+            console.error('Bank Sync Key Error:', err);
+            showToast('Failed to generate key', 'error');
+        } finally {
+            setupBtn.disabled = false;
+        }
+    });
+
+    // Copying logic
+    copyKeyBtn?.addEventListener('click', () => {
+        navigator.clipboard.writeText(secretKeyDisplay.textContent);
+        showToast('Key copied to clipboard', 'success');
+    });
+
+    copyUrlBtn?.addEventListener('click', () => {
+        navigator.clipboard.writeText(webhookUrlDisplay.textContent);
+        showToast('Webhook URL copied', 'success');
+    });
+}

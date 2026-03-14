@@ -1,882 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GROWW - Wealth Intelligence</title>
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="css/animations.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="js/toast.js"></script>
-    <style>
-        :root {
-            --groww-green: #00D09C;
-            --groww-dark: #121212;
-            --groww-bg: #F9FAFB;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .invest-header {
-            background: #fff;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--border-light);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .invest-nav {
-            display: flex;
-            gap: 32px;
-            margin-top: 12px;
-        }
-
-        .invest-nav-link {
-            text-decoration: none;
-            color: var(--muted);
-            font-weight: 600;
-            padding-bottom: 8px;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .invest-nav-link.active {
-            color: var(--groww-green);
-            border-bottom-color: var(--groww-green);
-        }
-
-        .portfolio-summary-card {
-            background: #fff;
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
-            margin-bottom: var(--spacing-lg);
-            box-shadow: var(--shadow-md);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .summary-left h1 {
-            font-size: 2.5rem;
-            margin: 4px 0;
-        }
-
-        .summary-right {
-            text-align: right;
-        }
-
-        .return-badge {
-            background: rgba(0, 208, 156, 0.1);
-            color: var(--groww-green);
-            padding: 6px 12px;
-            border-radius: 99px;
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-
-        .return-badge.negative {
-            background: rgba(239, 68, 68, 0.1);
-            color: #EF4444;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .instrument-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 24px;
-        }
-
-        .instrument-card {
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            padding: 24px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-        }
-
-        .instrument-card:hover {
-            transform: translateY(-4px);
-            background: var(--glass-medium);
-            border-color: var(--primary);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .price-ticker-container {
-            background: var(--primary);
-            color: #fff;
-            padding: 12px 0;
-            border-radius: var(--radius-md);
-            margin: 20px 0;
-        }
-
-        .savings-bar-container {
-            width: 100%;
-            height: 6px;
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 99px;
-            overflow: hidden;
-            margin: 8px 0;
-        }
-
-        .savings-bar {
-            height: 100%;
-            background: var(--groww-green);
-            border-radius: 99px;
-        }
-
-        /* NEW MARKET CARDS */
-        .market-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .market-card {
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .market-card h3 {
-            font-size: 0.9rem;
-            color: var(--muted);
-            margin-bottom: 4px;
-        }
-
-        .market-card .price {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .market-card .change {
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        /* SMART SIP BOOSTER STYLES */
-        .booster-card {
-            background: linear-gradient(135deg, rgba(0, 208, 156, 0.1) 0%, rgba(91, 108, 242, 0.1) 100%);
-            border: 1px solid var(--groww-green);
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 208, 156, 0.15);
-        }
-
-        .booster-card::before {
-            content: 'AI';
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            font-size: 5rem;
-            font-weight: 900;
-            color: rgba(0, 208, 156, 0.05);
-            pointer-events: none;
-        }
-
-        .booster-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .booster-badge {
-            background: var(--groww-green);
-            color: #000;
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 4px 10px;
-            border-radius: 20px;
-            text-transform: uppercase;
-        }
-
-        .booster-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--text);
-        }
-
-        .booster-content {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-        }
-
-        .booster-insight {
-            flex: 1;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            color: var(--text);
-        }
-
-        .booster-action {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-width: 180px;
-        }
-
-        .growth-comparison {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 8px;
-        }
-
-        .growth-item {
-            background: var(--glass);
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-
-        .growth-label {
-            font-size: 0.7rem;
-            color: var(--muted);
-            margin-bottom: 4px;
-            font-weight: 600;
-        }
-
-        .growth-value {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text);
-        }
-
-        .growth-value.highlight {
-            color: var(--groww-green);
-        }
-
-        /* SIP CALCULATOR STYLES */
-        .sip-calculator {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 32px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 32px;
-        }
-
-        @media (max-width: 768px) {
-            .sip-calculator { grid-template-columns: 1fr; }
-        }
-
-        .calc-inputs {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .calc-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .calc-label-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .calc-label {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--muted);
-        }
-
-        .calc-value-display {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--primary);
-            background: rgba(91, 108, 242, 0.1);
-            padding: 2px 8px;
-            border-radius: 6px;
-        }
-
-        .calc-slider {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 6px;
-            border-radius: 5px;
-            background: var(--border);
-            outline: none;
-        }
-
-        .calc-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--primary);
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(91, 108, 242, 0.3);
-        }
-
-        .calc-results {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .result-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .result-card {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-
-        .result-label {
-            font-size: 0.75rem;
-            color: var(--muted);
-            margin-bottom: 4px;
-        }
-
-        .result-value {
-            font-size: 1.1rem;
-            font-weight: 800;
-        }
-
-        .result-value.highlight {
-            color: var(--groww-green);
-        }
-    </style>
-</head>
-
-<body>
-    <header class="header">
-        <div class="container">
-            <div class="header-content animate-fade-in-down">
-                <div class="brand">
-                    <div class="brand-logo">
-                        <img src="img/logo.jpg" alt="E"
-                            onerror="if(this.parentElement){this.parentElement.innerText='E'}">
-                    </div>
-                    <div class="brand-text">
-                        <h1>EXPENSIFIER</h1>
-                        <p>Manage your expenses</p>
-                    </div>
-                </div>
-
-                <nav class="header-nav" style="display: flex; gap: 8px; margin-left: 40px;">
-                    <a href="index.html" class="nav-link">Dashboard</a>
-                    <a href="invest.html" class="nav-link active">Investments</a>
-                    <a href="expense.html" class="nav-link">Expenses</a>
-                </nav>
-
-                <div class="user-section" id="auth-section" style="display: flex; align-items: center;">
-                    <div id="logged-out-view" class="row">
-                        <button id="login-btn" class="btn btn-primary">Sign in with Google</button>
-                    </div>
-
-                    <div id="user-info" class="user-section hidden">
-                        <div class="user-info">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span id="user-name" class="user-name"></span>
-                                <span id="header-level-badge"
-                                    style="background: #FFD700; color: #000; font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 10px; display: none;">LVL
-                                    0</span>
-                            </div>
-                        </div>
-                        <a href="profile.html" style="margin-right: 12px;">
-                            <img id="user-photo" class="user-photo" src="" alt="Profile"
-                                style="border: 2px solid var(--primary); padding: 2px;" />
-                        </a>
-                    </div>
-                    <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Theme">🌙</button>
-                </div>
-            </div>
-
-            <!-- Sub Navigation -->
-            <nav class="invest-nav"
-                style="margin-top: 10px; border-top: 1px solid var(--border-light); padding-top: 10px;">
-                <a href="#" class="invest-nav-link active" data-tab="dashboard">Dashboard</a>
-                <a href="#" class="invest-nav-link" data-tab="stocks">Holdings</a>
-                <a href="#" class="invest-nav-link" data-tab="discover">Market</a>
-                <a href="#" class="invest-nav-link" data-tab="savings">Savings</a>
-                <a href="#" class="invest-nav-link" data-tab="goals" style="color: #F59E0B;">✨ Dream Goals</a>
-                <button class="btn btn-primary" style="margin-left:auto;"
-                    onclick="document.getElementById('add-holding-modal').style.display='flex'">
-                    + Add Investments
-                </button>
-
-        </div>
-    </header>
-
-    <!-- Add Investment Modal -->
-    <div id="add-holding-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--overlay); z-index:1000; align-items:center; justify-content:center; backdrop-filter: blur(8px);">
-        <div
-            style="background:var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--border); padding:0; border-radius:24px; width:480px; box-shadow:var(--shadow-xl); overflow:hidden;">
-            <div style="padding: 24px; background: var(--glass); border-bottom: 1px solid var(--border);">
-                <h3 style="margin:0; color: var(--text);">➕ Add Investment</h3>
-            </div>
-
-            <!-- Modal Tabs -->
-            <div style="display:flex; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02);">
-                <button type="button" class="modal-tab active" data-target="tab-stock"
-                    style="flex:1; padding:16px; border:none; background:none; cursor:pointer; font-weight:700; color: var(--primary); border-bottom: 3px solid var(--primary);">Stocks</button>
-                <button type="button" class="modal-tab" data-target="tab-gold"
-                    style="flex:1; padding:16px; border:none; background:none; cursor:pointer; font-weight:600; color:var(--muted);">Gold/Silver</button>
-                <button type="button" class="modal-tab" data-target="tab-fixed"
-                    style="flex:1; padding:16px; border:none; background:none; cursor:pointer; font-weight:600; color:var(--muted);">FD/RD</button>
-                <button type="button" class="modal-tab" data-target="tab-sip"
-                    style="flex:1; padding:16px; border:none; background:none; cursor:pointer; font-weight:600; color:var(--muted);">SIP</button>
-            </div>
-
-            <form id="add-investment-form" style="padding: 32px;">
-                <!-- Stock Tab -->
-                <div id="tab-stock" class="modal-section">
-                    <div style="margin-bottom:20px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Symbol
-                            (e.g. RELIANCE.BSE, IBM)</label>
-                        <input type="text" name="stock_symbol" placeholder="RELIANCE.BSE"
-                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                    </div>
-                    <div style="margin-bottom:20px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Company
-                            Name</label>
-                        <input type="text" name="stock_name" placeholder="Reliance Industries"
-                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                        <div>
-                            <label
-                                style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Quantity</label>
-                            <input type="number" name="stock_qty" step="0.01"
-                                style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                        </div>
-                        <div>
-                            <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Avg Buy
-                                Price</label>
-                            <input type="number" name="stock_price" step="0.01"
-                                style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Gold/Silver Tab -->
-                <div id="tab-gold" class="modal-section" style="display:none;">
-                    <div style="margin-bottom:20px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Asset
-                            Type</label>
-                        <select name="gold_type"
-                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                            <option value="GOLD">Gold (24K) - per gram</option>
-                            <option value="SILVER">Silver - per gram</option>
-                        </select>
-                    </div>
-                    <div style="margin-bottom:20px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">📏 Weight
-                            (grams)</label>
-                        <input type="number" name="gold_qty" step="0.1" placeholder="e.g., 50 grams"
-                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                    </div>
-                    <div>
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">💰 Total
-                            Amount Paid (₹)</label>
-                        <input type="number" name="gold_price" step="0.01" placeholder="e.g., 312500"
-                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                    </div>
-                </div>
-
-                <!-- Fixed Income Tab -->
-                <div id="tab-fixed" class="modal-section" style="display:none;">
-                    <div style="margin-bottom:20px;">
-                        <label
-                            style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Type</label>
-                        <select name="fixed_type"
-                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                            <option value="FD">Fixed Deposit (FD)</option>
-                            <option value="RD">Recurring Deposit (RD)</option>
-                        </select>
-                    </div>
-                    <div style="margin-bottom:20px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Bank /
-                            Institution Name</label>
-                        <input type="text" name="fixed_name" placeholder="SBI Bank"
-                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
-                        <div>
-                            <label
-                                style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Principal</label>
-                            <input type="number" name="fixed_amount" step="1"
-                                style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                        </div>
-                        <div>
-                            <label
-                                style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">ROI (%)</label>
-                            <input type="number" name="fixed_roi" step="0.01"
-                                style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                        </div>
-                    </div>
-                    <div style="margin-bottom:20px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Maturity
-                            Amount</label>
-                        <input type="number" name="fixed_maturity" step="1"
-                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                    </div>
-                </div>
-
-                <!-- SIP Tab -->
-                <div id="tab-sip" class="modal-section" style="display:none;">
-                    <div style="margin-bottom:20px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">SIP
-                            Name</label>
-                        <input type="text" name="sip_name" placeholder="Nifty 50 Index Fund"
-                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
-                        <div>
-                            <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Monthly
-                                Amount</label>
-                            <input type="number" name="sip_amount" step="1"
-                                style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                        </div>
-                        <div>
-                            <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Invested</label>
-                            <input type="number" name="sip_invested" step="1"
-                                style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                        </div>
-                    </div>
-                    <div style="margin-bottom:20px;">
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Target Goal</label>
-                        <input type="number" name="sip_target" step="1"
-                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                    </div>
-                </div>
-
-                <div style="display:flex; gap:16px; margin-top:32px;">
-                    <button type="submit" class="btn btn-primary"
-                        style="flex:1; padding: 14px;">Save Investment</button>
-                    <button type="button" class="btn btn-ghost"
-                        onclick="document.getElementById('add-holding-modal').style.display='none'"
-                        style="flex:1; padding: 14px;">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Add Goal Modal -->
-    <div id="add-goal-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--overlay); z-index:1000; align-items:center; justify-content:center; backdrop-filter: blur(8px);">
-        <div
-            style="background:var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--border); padding:0; border-radius:24px; width:480px; box-shadow:var(--shadow-xl); overflow:hidden;">
-            <div style="padding: 24px; background: var(--glass); border-bottom: 1px solid var(--border);">
-                <h3 style="margin:0; color: var(--text);">✨ Add New Dream Goal</h3>
-                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--muted);">Let AI help you map out your path to success.</p>
-            </div>
-
-            <form id="add-goal-form" style="padding: 32px;">
-                <div style="margin-bottom:20px;">
-                    <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">What's your dream? (e.g., Buy a Tesla, World Tour)</label>
-                    <input type="text" id="goal-name" required placeholder="e.g. World Tour"
-                        style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                </div>
-
-                <div style="margin-bottom:20px;">
-                    <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Target Amount Required (₹)</label>
-                    <input type="number" id="goal-target" required step="1" placeholder="e.g. 500000"
-                        style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                </div>
-
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
-                    <div>
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Timeline Number</label>
-                        <input type="number" id="goal-timeline" required step="1" placeholder="e.g. 24"
-                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                    </div>
-                    <div>
-                        <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Timeline Unit</label>
-                        <select id="goal-timeline-unit"
-                            style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                            <option value="months">Months</option>
-                            <option value="years">Years</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div style="margin-bottom:20px;">
-                    <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--muted); margin-bottom: 8px;">Already saved specific to this goal? (₹)</label>
-                    <input type="number" id="goal-saved" step="1" value="0" placeholder="e.g. 50000"
-                        style="width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background: var(--bg); color: var(--text);">
-                </div>
-
-                <div style="display:flex; gap:16px; margin-top:32px;">
-                    <button type="submit" class="btn btn-primary"
-                        style="flex:1; padding: 14px; background: var(--gradient-primary) !important;">Create AI Roadmap</button>
-                    <button type="button" class="btn btn-ghost"
-                        onclick="document.getElementById('add-goal-modal').style.display='none'"
-                        style="flex:1; padding: 14px;">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <main class="container" style="margin-top: 32px;">
-
-        <!-- Dashboard Tab -->
-        <div id="dashboard" class="tab-content active animate-fade-in-up">
-            <div class="portfolio-summary-card" style="background: var(--glass); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 20px; padding: 32px; margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center;">
-                <div class="summary-left">
-                    <span class="p-label" style="font-size: 0.9rem; color: var(--muted); font-weight: 600;">Current Value</span>
-                    <h1 id="total-wealth" style="font-size: 3rem; margin: 8px 0; color: var(--text);">₹0</h1>
-                    <div style="display: flex; gap: 16px; align-items: center; margin-top: 12px;">
-                        <span class="return-badge" id="total-returns" style="font-size: 1rem; padding: 8px 16px;">+₹0 (0%)</span>
-                        <span style="color: var(--muted); font-size: 0.9rem; font-weight: 500;">Total Returns</span>
-                    </div>
-                </div>
-                <div class="summary-right">
-                    <div class="p-stat">
-                        <span class="p-label" style="color: var(--muted); font-weight: 600;">1D Returns</span>
-                        <div class="p-value up" id="daily-gain" style="font-size: 1.5rem; font-weight: 700; margin-top: 4px;">+₹0 (0%)</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pre-calculate Gold/Silver IDs -->
-            <div class="market-grid" id="market-highlights">
-                <!-- Gold Card -->
-                <div class="market-card">
-                    <div>
-                        <h3 style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; font-weight: 700;">🟡 GOLD (10g)</h3>
-                        <div class="price" id="price-gold" style="font-size: 1.6rem; font-weight: 800; color: #F59E0B;">₹0</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div class="change" id="change-gold" style="font-weight: 700;">0%</div>
-                        <p style="font-size:0.7rem; color:var(--muted); margin:4px 0 0 0;" id="status-gold">🟡 Cached
-                        </p>
-                    </div>
-                </div>
-                <!-- Silver Card -->
-                <div class="market-card">
-                    <div>
-                        <h3 style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; font-weight: 700;">⚪ SILVER (1kg)</h3>
-                        <div class="price" id="price-silver" style="font-size: 1.6rem; font-weight: 800; color: #94A3B8;">₹0</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div class="change" id="change-silver" style="font-weight: 700;">0%</div>
-                        <p style="font-size:0.7rem; color:var(--muted); margin:4px 0 0 0;" id="status-silver">🟡 Cached
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="price-ticker-container">
-                <div class="price-ticker" id="price-ticker">
-                    <!-- Live Prices Injected Here -->
-                </div>
-            </div>
-
-            <div class="dashboard-grid">
-                <!-- Performance Chart -->
-                <div class="chart-card" style="grid-column: span 2;">
-                    <div class="chart-header">
-                        <h3 class="chart-title">📈 Portfolio Performance</h3>
-                    </div>
-                    <div class="chart-container" style="height: 350px;">
-                        <div id="portfolio-performance-chart"></div>
-                    </div>
-                </div>
-
-                <!-- Asset Allocation -->
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3 class="chart-title">📊 Asset Allocation</h3>
-                    </div>
-                    <div class="chart-container" style="height: 250px;">
-                        <div id="allocation-chart"></div>
-                    </div>
-                </div>
-
-                <!-- Passive Income Estimate -->
-                <div class="stat-card"
-                    style="background: linear-gradient(135deg, rgba(0, 208, 156, 0.15) 0%, rgba(0, 208, 156, 0.05) 100%); border: 1px solid rgba(0, 208, 156, 0.2); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px;">
-                    <div class="stat-card-header" style="margin-bottom: 12px;">
-                        <div class="stat-card-icon" style="font-size: 2rem;">💸</div>
-                    </div>
-                    <div class="stat-card-body">
-                        <h3 style="font-size: 0.9rem; color: var(--muted); margin-bottom: 8px;">Passive Income Estimate</h3>
-                        <div style="font-size: 2.2rem; font-weight: 800; color: #00D09C; margin: 12px 0;">
-                            ₹<span id="monthly-passive">0</span><small style="font-size: 0.9rem; opacity: 0.7;">
-                                /mo</small>
-                        </div>
-                        <p style="font-size: 0.85rem; color: var(--muted); line-height: 1.5; font-weight: 500;">
-                            Projected monthly yield from your FD and Savings accounts.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Holdings Tab -->
-        <div id="stocks" class="tab-content animate-fade-in-up">
-            <div class="section-header">
-                <h3 class="section-title">Your Investment Holdings</h3>
-            </div>
-            <div class="instrument-grid" id="stocks-list">
-                <!-- Skeletons -->
-                <div class="skeleton" style="height: 180px; border-radius: 16px;"></div>
-                <div class="skeleton" style="height: 180px; border-radius: 16px;"></div>
-                <div class="skeleton" style="height: 180px; border-radius: 16px;"></div>
-            </div>
-        </div>
-
-        <!-- Market Tab -->
-        <div id="discover" class="tab-content animate-fade-in-up">
-            <div class="section-header">
-                <h3 class="section-title">Market Discovery</h3>
-            </div>
-            <div class="instrument-grid" id="gold-list">
-                <!-- Skeletons -->
-                <div class="skeleton" style="height: 220px; border-radius: 16px;"></div>
-                <div class="skeleton" style="height: 220px; border-radius: 16px;"></div>
-            </div>
-        </div>
-
-        <!-- Savings Tab -->
-        <div id="savings" class="tab-content animate-fade-in-up">
-            <div class="section-header">
-                <h3 class="section-title">Your Savings & SIPs</h3>
-            </div>
-            
-            <div class="instrument-grid" id="savings-list" style="margin-bottom: 32px;">
-                <!-- Skeletons -->
-                <div class="skeleton" style="height: 160px; border-radius: 16px;"></div>
-                <div class="skeleton" style="height: 160px; border-radius: 16px;"></div>
-                <div class="skeleton" style="height: 160px; border-radius: 16px;"></div>
-            </div>
-
-            <!-- Investment Tools Button Group -->
-            <div class="tools-toggle-group" style="display: flex; gap: 16px; margin-bottom: 32px; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 24px; border: 1px solid var(--border);">
-                <div style="flex: 1;">
-                    <h4 style="margin:0 0 4px 0; font-size: 0.9rem; color: var(--muted);">Planning Tools</h4>
-                    <p style="margin:0; font-size: 0.75rem; color: var(--muted); opacity: 0.7;">Use AI and interactive calculators to reach your goals faster.</p>
-                </div>
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <button class="btn btn-ghost" onclick="toggleTool('booster')" style="border: 1px solid var(--groww-green); color: var(--groww-green); padding: 10px 20px; border-radius: 12px; font-weight: 700;">
-                        🚀 Analysis Booster
-                    </button>
-                    <button class="btn btn-ghost" onclick="toggleTool('calculator')" style="border: 1px solid var(--primary); color: var(--primary); padding: 10px 20px; border-radius: 12px; font-weight: 700;">
-                        🧮 Returns Calculator
-                    </button>
-                </div>
-            </div>
-
-            <!-- Smart SIP Booster Section -->
-            <div id="sip-booster-container" style="display: none; margin-bottom: 32px;">
-                <!-- Injected via JS -->
-            </div>
-
-            <!-- SIP Calculator Section -->
-            <div id="sip-calculator-container" style="display: none; margin-bottom: 32px;">
-                <div class="section-header">
-                    <h3 class="section-title">Interactive SIP Calculator</h3>
-                </div>
-                <!-- Injected via JS -->
-            </div>
-        </div>
-
-        <!-- Dream Goals Tab -->
-        <div id="goals" class="tab-content animate-fade-in-up">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <div class="section-header" style="margin-bottom: 0;">
-                    <h3 class="section-title" style="color: #F59E0B;">✨ AI Dream Planner</h3>
-                    <p style="margin: 0; font-size: 0.85rem; color: var(--muted);">Set macro goals and let the engine craft your personalized financial roadmap.</p>
-                </div>
-                <button class="btn btn-primary" style="background: var(--gradient-primary) !important; font-weight: 700;"
-                    onclick="document.getElementById('add-goal-modal').style.display='flex'">
-                    + New Dream Goal
-                </button>
-            </div>
-            
-            <div id="goals-list" style="display: flex; flex-direction: column; gap: 32px;">
-                <!-- Goals will be injected via JS -->
-                <div style="text-align: center; padding: 60px 20px; background: var(--glass); border: 1px dashed var(--border); border-radius: 20px;">
-                    <span style="font-size: 3rem; opacity: 0.5;">🎯</span>
-                    <h4 style="margin: 12px 0 4px 0; color: var(--text);">No goals set yet!</h4>
-                    <p style="margin: 0; font-size: 0.9rem; color: var(--muted);">Dream big. Hit "New Dream Goal" to generate your first AI roadmap.</p>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- API Status Footer -->
-    <footer
-        style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.85); border-top: 1px solid rgba(100,200,255,0.2); padding: 10px 16px; font-size: 0.8rem; color: #999; display: flex; justify-content: center; align-items: center; z-index: 100;">
-        <span id="api-status-text">📦 Loading API status...</span>
-    </footer>
-
-    <!-- AI CHAT UI FOR INVEST PAGE -->
-    <div id="ai-chat-fab" class="ai-fab">
-        <span>🤖</span>
-    </div>
-
-    <div id="ai-chat-popup" class="ai-chat-popup hidden">
-        <div class="ai-chat-header">
-            <div class="ai-chat-title">
-                <span>🤖</span>
-                <span>Finance AI</span>
-            </div>
-            <button id="ai-chat-close" class="btn-icon"
-                style="background:none; border:none; color:white; cursor:pointer; font-size:1.5rem;">×</button>
-        </div>
-        <div id="ai-chat-body" class="ai-chat-body">
-            <div class="msg-ai">Hello! I'm your personal investment advisor. Ask me about your portfolio, market trends,
-                or investment strategies!</div>
-        </div>
-        <div class="ai-chat-footer">
-            <input type="text" id="ai-chat-input" class="ai-chat-input" placeholder="Ask about your investments..."
-                autocomplete="off">
-            <button id="ai-chat-send" class="ai-chat-send">🚀</button>
-        </div>
-    </div>
-
-    <script type="module">
         import { AuthService } from './js/auth-service.js';
         import { DBService } from './js/db-service.js';
         import { AIService } from './js/ai-service.js';
@@ -1011,10 +133,11 @@
                     userPhoto.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=5B6CF2&color=fff`;
                 }
 
-                // 🔔 Request notification permission early
+                // 🔔 Request notification permission early (before any alerts are triggered)
                 if (NotificationService.isSupported() && Notification.permission === 'default') {
                     NotificationService.requestPermission()
                         .then(permission => {
+                            console.log('📢 Notification permission:', permission);
                             if (permission === 'granted') {
                                 NotificationService.show('Investment Alerts Active', 'You\'ll receive portfolio and price notifications.');
                             }
@@ -1024,20 +147,14 @@
 
                 loadData(user.uid);
             } else {
-                const isLocal = AuthService.isLocalOnly();
-                if (isLocal) {
-                    // Offline / guest mode
-                    if (userInfo) userInfo.classList.remove('hidden');
-                    if (loggedOutView) loggedOutView.classList.add('hidden');
-                    if (userName) userName.textContent = "Guest User";
-                    if (userEmail) userEmail.textContent = "Local Mode";
-                    if (userPhoto) userPhoto.src = "https://ui-avatars.com/api/?name=Guest&background=5B6CF2&color=fff";
-                } else {
-                    // Login overlay shown, but still load data for empty state
-                    if (loggedOutView) loggedOutView.classList.remove('hidden');
-                    if (userInfo) userInfo.classList.add('hidden');
+                if (userInfo) userInfo.classList.add('hidden');
+                if (loggedOutView) loggedOutView.classList.remove('hidden');
+                // Optional: handle local mode or guest
+                const isLocal = AuthService.isLocalOnly(); // Assuming this method exists or similar logic
+                // For now, if logged out, we might want to show empty state or guest
+                if (AuthService.isLocalOnly && AuthService.isLocalOnly()) {
+                    // Local mode handling if needed
                 }
-                // ✅ Always load data so investments page doesn't stay blank
                 loadData(null);
             }
             updateHeaderLevel();
@@ -1116,6 +233,7 @@
             if (goalForm) {
                 goalForm.onsubmit = async (e) => {
                     e.preventDefault();
+                    if (!currentUser) return showToast("Must be logged in", "error");
 
                     const submitBtn = goalForm.querySelector('button[type="submit"]');
                     const origText = submitBtn.textContent;
@@ -1123,37 +241,27 @@
                     submitBtn.disabled = true;
 
                     try {
-                        const name = document.getElementById('goal-name').value.trim();
+                        const name = document.getElementById('goal-name').value;
                         const targetAmount = parseFloat(document.getElementById('goal-target').value);
                         const deadlineValue = parseInt(document.getElementById('goal-timeline').value);
                         const deadlineFormat = document.getElementById('goal-timeline-unit').value;
                         const currentSaved = parseFloat(document.getElementById('goal-saved').value) || 0;
 
-                        if (!name || isNaN(targetAmount) || isNaN(deadlineValue)) {
-                            showToast('Please fill in all required fields.', 'error');
-                            return;
-                        }
-
                         const months = deadlineFormat === 'years' ? deadlineValue * 12 : deadlineValue;
                         
-                        // Build financial context
+                        // Generate baseline logic
+                        const requiredMonthly = GoalEngine.calculateMonthlyRequired(targetAmount, currentSaved, months, 12);
+                        
+                        // Parse finances to find average monthly surplus
                         const finances = contextData.expenses || [];
                         const state = FinancialEngine.calculateState(finances, 30000);
-                        const financialState = {
-                            avgMonthlyIncome: state.monthIncome || 40000,
-                            monthlyBurnRate: state.monthExpenses || 20000
-                        };
+                        const currentSurplus = Math.max(0, (state.monthIncome || 40000) - (state.monthExpenses || 20000));
                         
-                        // Math baseline
-                        const requiredMonthly = GoalEngine.calculateMonthlyRequired(targetAmount, currentSaved, months, 0.12);
-                        const probabilityScore = GoalEngine.calculateProbability(requiredMonthly, financialState);
-                        const baselineMilestones = GoalEngine.generateMilestones(targetAmount, currentSaved, months, requiredMonthly, 0.12);
+                        const probabilityScore = GoalEngine.calculateProbability(requiredMonthly, currentSurplus);
+                        const baselineMilestones = GoalEngine.generateMilestones(targetAmount, months);
 
-                        const safeId = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).substring(2));
-                        
-                        // ✅ STEP 1: Save baseline goal IMMEDIATELY so it shows in UI
-                        const baselineGoal = {
-                            id: safeId,
+                        const goalData = {
+                            id: crypto.randomUUID(),
                             name,
                             targetAmount,
                             deadlineValue,
@@ -1161,71 +269,44 @@
                             currentSaved,
                             requiredMonthly,
                             probabilityScore,
-                            milestones: baselineMilestones,
-                            aiInsight: "🤖 Generating AI roadmap...",
-                            suggestedAllocation: "Calculating optimal allocation...",
+                            baselineMilestones,
                             status: "active",
                             createdAt: new Date().toISOString()
                         };
 
-                        const saveUid = currentUser ? currentUser.uid : null;
-                        await DBService.saveData(saveUid, 'goals', safeId, baselineGoal);
+                        const financialState = {
+                            avgMonthlyIncome: state.monthIncome || 40000,
+                            monthlyBurnRate: state.monthExpenses || 20000
+                        };
+
+                        // Ask Groq for the personalized roadmap
+                        const aiResponse = await GoalAIService.generateRoadmap(goalData, financialState);
+
+                        // Merge
+                        const finalGoal = {
+                            ...goalData,
+                            probabilityScore: Number.isFinite(aiResponse.probabilityScore) ? aiResponse.probabilityScore : probabilityScore,
+                            aiInsight: aiResponse.aiInsight || "Keep saving consistently via SIPs to reach your dream faster.",
+                            suggestedAllocation: aiResponse.suggestedAllocation || "Balanced Equity focus.",
+                            milestones: Array.isArray(aiResponse.milestones) ? aiResponse.milestones : baselineMilestones
+                        };
+
+                        await DBService.saveData(uid, 'goals', finalGoal.id, finalGoal);
                         
-                        // Close modal and show goal right away
                         document.getElementById('add-goal-modal').style.display = 'none';
                         goalForm.reset();
-                        showToast('🎯 Goal created! Generating AI roadmap...', 'success');
-                        
-                        // Navigate to goals tab
-                        document.querySelectorAll('.invest-nav-link').forEach(l => l.classList.remove('active'));
-                        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-                        const goalsLink = document.querySelector('[data-tab="goals"]');
-                        const goalsTab = document.getElementById('goals');
-                        if (goalsLink) goalsLink.classList.add('active');
-                        if (goalsTab) goalsTab.classList.add('active');
-                        
-                        // ✅ STEP 2: Call Groq AI in the background
-                        try {
-                            submitBtn.textContent = origText;
-                            submitBtn.disabled = false;
-                            
-                            const aiResponse = await GoalAIService.generateRoadmap(baselineGoal, financialState);
-                            
-                            // ✅ STEP 3: Enrich goal with AI output and re-save
-                            const enrichedGoal = {
-                                ...baselineGoal,
-                                probabilityScore: Number.isFinite(aiResponse.probabilityScore) ? aiResponse.probabilityScore : probabilityScore,
-                                aiInsight: aiResponse.aiInsight || "Stick to a consistent SIP plan. Compound interest will do the work for you!",
-                                suggestedAllocation: aiResponse.suggestedAllocation || "70% Equity Mutual Funds, 30% Debt Funds",
-                                milestones: Array.isArray(aiResponse.milestones) && aiResponse.milestones.length > 0 
-                                    ? aiResponse.milestones 
-                                    : baselineMilestones
-                            };
+                        showToast('✅ Dream Goal AI Roadmap Created!', 'success');
 
-                            await DBService.saveData(saveUid, 'goals', safeId, enrichedGoal);
-                            showToast('✨ AI Roadmap ready!', 'success');
-
-                        } catch (aiErr) {
-                            // AI failed but goal is already saved with baseline data
-                            console.warn('AI enrichment failed, using baseline:', aiErr);
-                            const fallbackGoal = {
-                                ...baselineGoal,
-                                aiInsight: "Keep saving consistently via SIPs to reach your dream faster. Compound interest is your best friend!",
-                                suggestedAllocation: "70% Equity Mutual Funds, 20% Index Funds, 10% Gold"
-                            };
-                            await DBService.saveData(saveUid, 'goals', safeId, fallbackGoal);
-                        }
-
-                        // Award XP
                         try {
                             const { GamificationService } = await import('./js/gamification-service.js');
-                            await GamificationService.awardPoints(200);
+                            await GamificationService.awardPoints(200); // 200 XP for setting a goal
                             updateHeaderLevel();
                         } catch (err) {}
 
                     } catch (err) {
-                        showToast('Error: ' + err.message, 'error');
-                        console.error('Goal Error:', err);
+                        showToast('Error generating AI map: ' + err.message, 'error');
+                        console.error('Goal AI Error:', err);
+                    } finally {
                         submitBtn.textContent = origText;
                         submitBtn.disabled = false;
                     }
@@ -1269,9 +350,8 @@
                     }
                     else if (activeModalTab === 'tab-fixed') {
                         const type = formData.get('fixed_type');
-                        const safeId = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
                         collection = type === 'FD' ? 'fdAccounts' : 'rdAccounts';
-                        id = safeId;
+                        id = crypto.randomUUID();
                         data = {
                             id,
                             name: formData.get('fixed_name'),
@@ -1285,9 +365,8 @@
                         };
                     }
                     else if (activeModalTab === 'tab-sip') {
-                        const safeId = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
                         collection = 'sipPlans';
-                        id = safeId;
+                        id = crypto.randomUUID();
                         data = {
                             id,
                             name: formData.get('sip_name'),
@@ -1824,89 +903,53 @@
 
             container.innerHTML = contextData.goals.map(goal => {
                 const probabilityScore = goal.probabilityScore || 0;
-                let scoreColor = '#00D09C';
-                let scoreBg = 'rgba(0, 208, 156, 0.15)';
-                if (probabilityScore < 40) { scoreColor = '#EF4444'; scoreBg = 'rgba(239, 68, 68, 0.12)'; }
-                else if (probabilityScore < 70) { scoreColor = '#F59E0B'; scoreBg = 'rgba(245, 158, 11, 0.12)'; }
+                let colorVar = '--groww-green';
+                if (probabilityScore < 40) colorVar = '--danger';
+                else if (probabilityScore < 70) colorVar = '--warning';
                 
-                const savedPerc = goal.targetAmount > 0 ? Math.min(100, (goal.currentSaved / goal.targetAmount) * 100) : 0;
-                const isGenerating = goal.aiInsight && goal.aiInsight.includes('Generating AI roadmap');
-                
-                const milestones = goal.milestones || [];
-                
+                const gaugeStyle = `background: conic-gradient(var(${colorVar}) ${probabilityScore}%, rgba(255,255,255,0.1) 0);`;
+
                 return `
-                <div style="background: var(--glass); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 24px; padding: 28px; position: relative; overflow: hidden; transition: all 0.3s;">
-                    
-                    <!-- Decorative gradient blob -->
-                    <div style="position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; background: radial-gradient(circle, ${scoreColor}22 0%, transparent 70%); pointer-events: none;"></div>
-
-                    <!-- Delete button -->
-                    <button onclick="deleteInvestment('${goal.id}', 'goals')" 
-                        style="position: absolute; right: 16px; top: 16px; background: rgba(239,68,68,0.1); color: #EF4444; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 0.85rem; z-index: 10;" 
-                        title="Delete Goal">🗑️</button>
-                    
-                    <!-- Header Row -->
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-right: 40px;">
-                        <div style="flex: 1;">
-                            <h3 style="margin: 0 0 6px 0; font-size: 1.4rem; font-weight: 800; color: var(--text);">✨ ${goal.name}</h3>
-                            <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.82rem; color: var(--muted); font-weight: 600;">
-                                <span>🎯 Target: <strong style="color: var(--text);">₹${(goal.targetAmount||0).toLocaleString('en-IN')}</strong></span>
-                                <span>⏳ <strong style="color: var(--text);">${goal.deadlineValue} ${goal.deadlineFormat}</strong></span>
-                                <span>💰 Saved: <strong style="color: #00D09C;">₹${(goal.currentSaved||0).toLocaleString('en-IN')}</strong></span>
+                <div class="goal-card">
+                    <button onclick="deleteInvestment('${goal.id}', 'goals')" style="position: absolute; right: 16px; top: 16px; background: rgba(255,0,0,0.1); color: var(--danger); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; z-index: 10;" title="Delete Goal">🗑️</button>
+                    <div class="goal-header">
+                        <div>
+                            <h3 class="goal-title">${goal.name}</h3>
+                            <div class="goal-meta">
+                                <span style="font-weight: 600; color: var(--text);">🎯 ₹${goal.targetAmount.toLocaleString('en-IN')}</span>
+                                <span>⏳ ${goal.deadlineValue} ${goal.deadlineFormat}</span>
+                                <span style="color: var(--groww-green);">💰 Saved: ₹${goal.currentSaved.toLocaleString('en-IN')}</span>
                             </div>
-                            <div style="margin-top: 10px; font-size: 0.83rem; color: var(--muted);">
-                                Monthly SIP needed: <strong style="color: var(--primary); font-size: 1rem;">₹${Math.round(goal.requiredMonthly || 0).toLocaleString('en-IN')}</strong>
+                            <div style="margin-top: 12px; font-size: 0.8rem; color: var(--muted);">
+                                Required SIP: <strong style="color: var(--primary);">₹${Math.round(goal.requiredMonthly || 0).toLocaleString('en-IN')} / mo</strong>
                             </div>
                         </div>
-
-                        <!-- Probability Score badge -->
-                        <div style="display: flex; flex-direction: column; align-items: center; background: ${scoreBg}; border: 1.5px solid ${scoreColor}; border-radius: 16px; padding: 12px 18px; min-width: 80px; text-align: center; flex-shrink: 0;">
-                            <div style="font-size: 1.6rem; font-weight: 900; color: ${scoreColor}; line-height: 1;">${probabilityScore}%</div>
-                            <div style="font-size: 0.65rem; font-weight: 700; color: ${scoreColor}; opacity: 0.8; margin-top: 4px; text-transform: uppercase;">Success Rate</div>
+                        <div class="probability-gauge" style="${gaugeStyle}">
+                            <span class="probability-text" style="color: var(${colorVar});">${probabilityScore}%</span>
                         </div>
                     </div>
-
-                    <!-- Progress Bar -->
-                    <div style="margin-bottom: 24px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; font-weight: 600;">
-                            <span>Progress to Goal</span><span>${savedPerc.toFixed(1)}% saved</span>
-                        </div>
-                        <div style="height: 8px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden;">
-                            <div style="height: 100%; width: ${savedPerc}%; background: linear-gradient(90deg, ${scoreColor}, ${scoreColor}99); border-radius: 99px; transition: width 0.6s ease;"></div>
-                        </div>
-                    </div>
-
-                    <!-- AI Roadmap / Milestones -->
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px;">
-                        <h4 style="margin: 0 0 16px 0; font-size: 0.95rem; font-weight: 700; color: var(--text);">🚀 AI Strategy & Milestones</h4>
-                        ${milestones.length > 0 ? milestones.map((m, idx) => `
-                            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border)${idx === milestones.length - 1 ? '; border-bottom: none;' : ';'}">
-                                <div style="width: 28px; height: 28px; border-radius: 50%; background: ${m.isAchieved ? '#00D09C' : 'var(--glass)'}; border: 2px solid ${m.isAchieved ? '#00D09C' : 'var(--border)'}; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: ${m.isAchieved ? '#000' : 'var(--muted)'}; flex-shrink: 0;">
-                                    ${m.isAchieved ? '✓' : (idx + 1)}
+                    
+                    <div class="roadmap-timeline">
+                        <h4 style="margin: 0 0 12px 0; font-size: 1rem; color: var(--text);">🚀 AI Strategy & Roadmap</h4>
+                        ${(goal.milestones || []).map(m => `
+                            <div class="milestone ${m.isAchieved ? 'achieved' : ''}">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <div style="font-weight: 700; color: var(--text); font-size: 0.95rem;">${m.title}</div>
+                                        <div style="font-size: 0.75rem; color: var(--muted); margin-top: 2px;">Target amount to accumulate</div>
+                                    </div>
+                                    <div style="font-weight: 800; font-size: 1.1rem; color: var(--primary);">₹${(m.target || 0).toLocaleString('en-IN')}</div>
                                 </div>
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 700; font-size: 0.88rem; color: var(--text);">${m.title}</div>
-                                    ${m.monthOffset ? `<div style="font-size: 0.72rem; color: var(--muted);">Month ${m.monthOffset}</div>` : ''}
-                                </div>
-                                <div style="font-weight: 800; font-size: 1rem; color: var(--primary); flex-shrink: 0;">₹${(m.target || 0).toLocaleString('en-IN')}</div>
                             </div>
-                        `).join('') : '<p style="color: var(--muted); font-size: 0.85rem; margin: 0;">Generating milestones...</p>'}
+                        `).join('')}
                     </div>
-                    
-                    <!-- AI Insight Box -->
-                    <div style="background: linear-gradient(135deg, rgba(91, 108, 242, 0.1) 0%, rgba(0, 208, 156, 0.08) 100%); border: 1px solid rgba(91, 108, 242, 0.25); border-radius: 16px; padding: 16px;">
-                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--primary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
-                            ${isGenerating ? '⏳ AI Analysis in Progress...' : '💎 AI Insight'}
-                        </div>
-                        <p style="margin: 0; font-size: 0.88rem; color: var(--text); line-height: 1.6; font-style: ${isGenerating ? 'italic' : 'normal'}; opacity: ${isGenerating ? '0.7' : '1'};">
-                            ${goal.aiInsight || 'Stick to your monthly SIP and let compounding work for you!'}
-                        </p>
-                        ${goal.suggestedAllocation && !goal.suggestedAllocation.includes('Calculating') ? `
-                        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(91, 108, 242, 0.2); font-size: 0.8rem;">
-                            <strong style="color: var(--muted);">📊 Suggested Allocation:</strong>
-                            <span style="color: var(--text); margin-left: 6px;">${goal.suggestedAllocation}</span>
-                        </div>` : ''}
-                    </div>
+
+                    ${goal.aiInsight ? `
+                    <div class="goal-insight">
+                        <strong>💎 AI Insight:</strong> ${goal.aiInsight}
+                        <br><br>
+                        <strong>📊 Suggested Allocation:</strong> ${goal.suggestedAllocation || 'Balanced Investment'}
+                    </div>` : ''}
                 </div>
                 `;
             }).join('');
@@ -1952,7 +995,7 @@
 
                 if (!suggestion) {
                     console.log('💎 [SmartSIP] No suggestion returned from service.');
-                    container.style.display = 'none';
+                    containers.forEach(c => { if(c) c.style.display = 'none'; });
                     return;
                 }
 
@@ -2204,7 +1247,4 @@
                 console.warn("Failed to update header level:", err);
             }
         }
-    </script>
-</body>
-
-</html>
+    

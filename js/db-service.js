@@ -1,7 +1,7 @@
 // js/db-service.js
 import { db } from './firebase-config.js';
 import {
-    collection, doc, setDoc, getDocs, getDoc, deleteDoc,
+    collection, doc, setDoc, getDocs, getDoc, deleteDoc, updateDoc,
     query, where, onSnapshot
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
@@ -156,6 +156,46 @@ export class DBService {
         } catch (error) {
             console.error('DBService GetUserProfile Error:', error);
             return null;
+        }
+    }
+
+    // --- Goal Specific Methods ---
+
+    static async saveGoal(userId, goalData) {
+        return this.saveData(userId, 'goals', goalData.id, goalData);
+    }
+
+    static async getGoals(userId) {
+        return this.fetchData(userId, 'goals');
+    }
+
+    static async updateGoal(userId, goalId, updates) {
+        if (!userId) {
+            let local = [];
+            try {
+                const raw = localStorage.getItem('goals');
+                local = raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                local = [];
+            }
+            const idx = local.findIndex(i => i.id === goalId);
+            if (idx >= 0) {
+                local[idx] = { ...local[idx], ...updates };
+                localStorage.setItem('goals', JSON.stringify(local));
+                // dispatch manual storage event
+                try {
+                    const ev = new StorageEvent('storage', { key: 'goals' });
+                    window.dispatchEvent(ev);
+                } catch (e) {}
+            }
+            return;
+        }
+        try {
+            const goalRef = doc(db, `users/${userId}/goals`, goalId);
+            await updateDoc(goalRef, updates);
+        } catch (error) {
+            console.error('DBService Update Goal Error:', error);
+            throw error;
         }
     }
 }

@@ -229,6 +229,10 @@
               style="margin-top: 12px; width: 100%; font-size: 0.85rem;">
               ✏️ Edit Goal
             </button>
+            <a href="invest.html#goals" class="btn btn-primary"
+              style="margin-top: 8px; width: 100%; font-size: 0.85rem; padding: 10px; text-align: center; display: block; box-sizing: border-box; background: var(--gradient-primary); border: none; font-weight: 700;">
+              ✨ AI Dream Planner
+            </a>
           </div>
 
           <!-- Goal Edit Form (Hidden by default) -->
@@ -461,9 +465,33 @@
     setInterval(updateTime, 60000);
 
     // Auth handling
+    let currentUnsubs = {
+      finances: null,
+      budget: null,
+      goals: null
+    };
+
+    function clearSubscriptions() {
+      Object.keys(currentUnsubs).forEach(key => {
+        if (currentUnsubs[key]) {
+          try {
+            currentUnsubs[key]();
+            console.log(`📡 Cleared subscription for ${key}`);
+          } catch (e) {
+            console.warn(`⚠️ Error clearing ${key} subscription:`, e);
+          }
+          currentUnsubs[key] = null;
+        }
+      });
+    }
+
     AuthService.onUserChange(async (user) => {
       try {
         currentUser = user;
+        
+        // Clear all existing subscriptions when auth state changes
+        clearSubscriptions();
+
         if (user) {
           // if we were previously in local-only mode, disable it now that auth succeeded
           if (AuthService.isLocalOnly()) {
@@ -480,11 +508,10 @@
           const firstName = user.displayName ? user.displayName.split(' ')[0] : (user.email ? user.email.split('@')[0] : "User");
           greetingName.textContent = firstName;
 
-          // 🔔 Request notification permission early (before any alerts are triggered)
+          // 🔔 Request notification permission early
           if (NotificationService.isSupported() && Notification.permission === 'default') {
             NotificationService.requestPermission()
               .then(permission => {
-                console.log('📢 Notification permission:', permission);
                 if (permission === 'granted') {
                   NotificationService.show('Dashboard Alerts Active', 'You\'ll receive spending and investment notifications.');
                 }
@@ -500,14 +527,15 @@
             userInfo.classList.remove('hidden');
             loggedOutView.classList.add('hidden');
             userName.textContent = "Guest User";
-            userEmail.textContent = "Local Mode";
+            if (userEmail) userEmail.textContent = "Local Mode";
             userPhoto.src = "https://ui-avatars.com/api/?name=Guest&background=5B6CF2&color=fff";
             greetingName.textContent = "Guest";
-            await loadData(null);
           } else {
             loggedOutView.classList.remove('hidden');
             userInfo.classList.add('hidden');
           }
+          // Always load data so UI is populated (even if empty)
+          await loadData(null);
         }
       } catch (error) {
         console.error('❌ Auth state change error:', error);
@@ -518,12 +546,14 @@
 
     async function loadData(uid) {
       try {
-        // Fetch initial data first
         console.log('📥 Loading data for user:', uid || 'Local');
-        const finances = await DBService.fetchData(uid, 'finances');
-        const budgetData = await DBService.fetchData(uid, 'monthlyBudget');
-        const engineData = await DBService.fetchData(uid, 'engineState');
-        const goalsData = await DBService.fetchData(uid, 'goals');
+        
+        // Fetch initial data first for quick render
+        const [finances, budgetData, goalsData] = await Promise.all([
+          DBService.fetchData(uid, 'finances'),
+          DBService.fetchData(uid, 'monthlyBudget'),
+          DBService.fetchData(uid, 'goals')
+        ]);
         
         contextData.finances = finances;
         contextData.budget = budgetData.find(d => d.id === 'settings')?.value || null;
@@ -538,23 +568,23 @@
         const savedGoal = goalsData.find(g => g.id === 'userGoal');
         updateGoalDisplay(savedGoal || null);
 
-        console.log('✅ Initial data loaded:', { finances: finances.length, budget: !!contextData.budget });
+        // Remove skeleton loaders
+        document.querySelectorAll('.stat-card.loading').forEach(card => card.classList.remove('loading'));
 
-        // Set up real-time subscriptions for automatic updates
-        DBService.subscribe(uid, 'finances', async (data) => {
+        // Set up real-time subscriptions
+        currentUnsubs.finances = DBService.subscribe(uid, 'finances', async (data) => {
           try {
             contextData.finances = data;
 
-            // Calculate and Save Engine State
-            if (contextData.budget) {
+            // Calculate and Save Engine State (Async, non-blocking)
+            if (contextData.budget && data.length > 0) {
               const state = FinancialEngine.calculateState(data, contextData.budget);
               const risks = FinancialEngine.runRiskEngine(state, contextData.budget);
               const behavior = FinancialEngine.runBehaviorModel(data);
 
-              // Save to Firebase
-              await DBService.saveData(uid, 'engineState', 'financialState', { id: 'financialState', ...state });
-              await DBService.saveData(uid, 'engineState', 'riskSignals', { id: 'riskSignals', ...risks });
-              await DBService.saveData(uid, 'engineState', 'behaviorProfile', { id: 'behaviorProfile', ...behavior });
+              DBService.saveData(uid, 'engineState', 'financialState', { id: 'financialState', ...state });
+              DBService.saveData(uid, 'engineState', 'riskSignals', { id: 'riskSignals', ...risks });
+              DBService.saveData(uid, 'engineState', 'behaviorProfile', { id: 'behaviorProfile', ...behavior });
             }
 
             renderDashboard(contextData.finances, contextData.budget);
@@ -567,67 +597,40 @@
           }
         });
 
-        DBService.subscribe(uid, 'monthlyBudget', async (data) => {
+        currentUnsubs.budget = DBService.subscribe(uid, 'monthlyBudget', async (data) => {
           try {
             const settings = data.find(d => d.id === 'settings');
             contextData.budget = settings ? settings.value : null;
 
-            // Recalculate engine state when budget changes
             if (contextData.budget && contextData.finances.length > 0) {
               const state = FinancialEngine.calculateState(contextData.finances, contextData.budget);
               const risks = FinancialEngine.runRiskEngine(state, contextData.budget);
               const behavior = FinancialEngine.runBehaviorModel(contextData.finances);
 
-              await DBService.saveData(uid, 'engineState', 'financialState', { id: 'financialState', ...state });
-              await DBService.saveData(uid, 'engineState', 'riskSignals', { id: 'riskSignals', ...risks });
-              await DBService.saveData(uid, 'engineState', 'behaviorProfile', { id: 'behaviorProfile', ...behavior });
+              DBService.saveData(uid, 'engineState', 'financialState', { id: 'financialState', ...state });
+              DBService.saveData(uid, 'engineState', 'riskSignals', { id: 'riskSignals', ...risks });
+              DBService.saveData(uid, 'engineState', 'behaviorProfile', { id: 'behaviorProfile', ...behavior });
             }
 
             renderDashboard(contextData.finances, contextData.budget);
-            
-            // Remove skeleton loaders
-            document.querySelectorAll('.stat-card.loading').forEach(card => {
-              card.classList.remove('loading');
-            });
+            document.querySelectorAll('.stat-card.loading').forEach(card => card.classList.remove('loading'));
           } catch (err) {
             console.error('❌ Error processing budget subscription:', err);
           }
         });
 
-        // GEN-3 Real-time Engine Updates
-        DBService.subscribe(uid, 'engineState', (data) => {
-          try {
-            const state = data.find(d => d.id === 'financialState');
-            const risks = data.find(d => d.id === 'riskSignals');
-            const behavior = data.find(d => d.id === 'behaviorProfile');
-
-            if (state) updateBurnRateUI(state);
-            if (risks) updateHealthUI(risks);
-            if (state && risks && behavior) {
-              updateAISmartDashboard(state, risks, behavior);
-              contextData.engineState = { state, risks, behavior };
-            }
-          } catch (err) {
-            console.error('❌ Error processing engine state subscription:', err);
-          }
+        // Add goals subscription too
+        currentUnsubs.goals = DBService.subscribe(uid, 'goals', (data) => {
+           const savedGoal = data.find(g => g.id === 'userGoal');
+           updateGoalDisplay(savedGoal || null);
         });
 
-        DBService.subscribe(uid, 'goals', (data) => {
-          try {
-            const savedGoal = data.find(g => g.id === 'userGoal');
-            updateGoalDisplay(savedGoal || null);
-          } catch (err) {
-            console.error('❌ Error processing goals subscription:', err);
-          }
-        });
-
-        // Start AI Insight Analysis
-        lastAiUpdate = 0; // Trigger immediately
       } catch (error) {
-        console.error('❌ Fatal error in loadData:', error);
-        showToast('⚠️ Failed to load data. Please check console and try refreshing.', 'error', 6000);
+        console.error('❌ Error in loadData:', error);
+        document.querySelectorAll('.stat-card.loading').forEach(card => card.classList.remove('loading'));
       }
     }
+
 
 
     // Goal Management Functions

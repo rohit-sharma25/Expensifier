@@ -12,6 +12,7 @@
 </head>
 
 <body>
+  <a href="#main-content" class="skip-link" style="position: absolute; top: -100px; left: 0; background: var(--primary); color: white; padding: 8px; z-index: 1000; transition: top 0.3s; clip: rect(1px, 1px, 1px, 1px); clip-path: inset(50%);">Skip to content</a>
   <!-- Diagnostic: logs errors to console without interrupting UX -->
   <script>
     window.onerror = function (msg, url, lineNo, columnNo, error) {
@@ -63,7 +64,7 @@
                 style="border: 2px solid var(--primary); padding: 2px;" />
             </a>
           </div>
-          <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Theme">🌙</button>
+          <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Theme" aria-label="Toggle between dark and light theme">🌙</button>
         </div>
       </div>
 
@@ -75,36 +76,35 @@
   </header>
 
   <!-- Main Content -->
-  <main class="container">
+  <main class="container" id="main-content">
     <!-- Add Expense Form -->
-    <section class="expenses-section animate-fade-in-up">
-      <h3 class="section-title" id="entry-form-title" style="text-align: center;">➕ Add New Entry</h3>
-      <div class="section-header" style="justify-content: flex-start; gap: 24px; margin-bottom: 12px;">
-        <div class="type-toggle-wrap">
-          <button type="button" id="btn-expense" class="type-pill active-expense">💸 Expense</button>
-          <button type="button" id="btn-income" class="type-pill">💰 Income</button>
+    <section class="expenses-section animate-fade-in-up" style="background: var(--glass); border: 1px solid var(--border-glow); backdrop-filter: blur(20px); padding: 40px; border-radius: 28px; box-shadow: var(--shadow-xl); position: relative; overflow: hidden;">
+      <!-- Background Glow -->
+      <div style="position: absolute; top: -100px; right: -100px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(91, 108, 242, 0.1) 0%, transparent 70%); pointer-events: none;"></div>
+      
+      <h3 class="section-title" id="entry-form-title" style="text-align: center; font-size: 1.8rem; margin-bottom: 30px; letter-spacing: -0.5px;">➕ Add New Entry</h3>
+      
+      <div class="row" style="justify-content: center; margin-bottom: 32px;">
+        <div class="type-toggle-wrap" style="background: rgba(0,0,0,0.2); padding: 6px; border-radius: 16px; display: flex; gap: 4px; border: 1px solid var(--border);">
+          <button type="button" id="btn-expense" class="type-pill active-expense" style="padding: 10px 24px; border-radius: 12px; font-weight: 700; transition: all 0.3s ease;" aria-pressed="true">💸 Expense</button>
+          <button type="button" id="btn-income" class="type-pill" style="padding: 10px 24px; border-radius: 12px; font-weight: 700; transition: all 0.3s ease;" aria-pressed="false">💰 Income</button>
         </div>
       </div>
 
-      <form id="expense-form"
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px;">
-        <div>
-          <label
-            style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">Description</label>
-          <input type="text" id="expense-desc" placeholder="e.g., Lunch at restaurant" required autocomplete="off" />
+      <form id="expense-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px;">
+        <div style="grid-column: span 2;">
+          <label for="expense-desc" style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Transaction Description</label>
+          <input type="text" id="expense-desc" placeholder="e.g., Premium Dinner at Taj" required autocomplete="off" style="padding: 14px 18px; font-size: 1rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 16px; color: var(--text);" aria-required="true" />
         </div>
 
         <div>
-          <label
-            style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">Amount
-            (₹)</label>
-          <input type="number" id="expense-amount" placeholder="0.00" step="0.01" required />
+          <label for="expense-amount" style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Amount (₹)</label>
+          <input type="number" id="expense-amount" placeholder="0.00" step="0.01" required style="padding: 14px 18px; font-size: 1.1rem; font-weight: 700; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 16px; color: var(--primary-light);" aria-required="true" />
         </div>
 
         <div>
-          <label
-            style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">Category</label>
-          <select id="expense-category" required>
+          <label for="expense-category" style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Category</label>
+          <select id="expense-category" required style="padding: 14px 18px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 16px;" aria-required="true">
             <option value="">Select Category</option>
             <option value="Food & Grocery">🍔 Food & Grocery</option>
             <option value="Investment">📈 Investment</option>
@@ -118,41 +118,34 @@
         </div>
 
         <div>
-          <label
-            style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">Sub
-            Category</label>
-          <select id="expense-subcategory" required>
+          <label for="expense-subcategory" style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Sub Category</label>
+          <select id="expense-subcategory" required style="padding: 14px 18px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 16px;" aria-required="true">
             <option value="">Select Sub Category</option>
-            <!-- Food & Grocery -->
+            <!-- All options remain the same -->
             <option value="Restaurant" data-category="Food & Grocery">Restaurant</option>
             <option value="Groceries" data-category="Food & Grocery">Groceries</option>
             <option value="Snacks" data-category="Food & Grocery">Snacks</option>
             <option value="Beverages" data-category="Food & Grocery">Beverages</option>
-            <!-- Investment -->
             <option value="Stocks" data-category="Investment">Stocks</option>
             <option value="Mutual Funds" data-category="Investment">Mutual Funds</option>
             <option value="Crypto" data-category="Investment">Crypto</option>
             <option value="Gold" data-category="Investment">Gold</option>
             <option value="Fixed Deposit" data-category="Investment">Fixed Deposit</option>
-            <!-- Shopping -->
             <option value="Clothing" data-category="Shopping">Clothing</option>
             <option value="Electronics" data-category="Shopping">Electronics</option>
             <option value="Home & Kitchen" data-category="Shopping">Home & Kitchen</option>
             <option value="Books" data-category="Shopping">Books</option>
             <option value="Accessories" data-category="Shopping">Accessories</option>
-            <!-- Traveling -->
             <option value="Flight" data-category="Traveling">Flight</option>
             <option value="Hotel" data-category="Traveling">Hotel</option>
             <option value="Cab/Taxi" data-category="Traveling">Cab/Taxi</option>
             <option value="Train" data-category="Traveling">Train</option>
             <option value="Bus" data-category="Traveling">Bus</option>
-            <!-- Miscellaneous -->
             <option value="Gifts" data-category="Miscellaneous">Gifts</option>
             <option value="Entertainment" data-category="Miscellaneous">Entertainment</option>
             <option value="Healthcare" data-category="Miscellaneous">Healthcare</option>
             <option value="Education" data-category="Miscellaneous">Education</option>
             <option value="Other" data-category="Miscellaneous">Other</option>
-            <!-- Bill & Subscription -->
             <option value="Netflix" data-category="Bill & Subscription">Netflix</option>
             <option value="Spotify" data-category="Bill & Subscription">Spotify</option>
             <option value="WiFi/Internet" data-category="Bill & Subscription">WiFi/Internet</option>
@@ -160,13 +153,11 @@
             <option value="Water" data-category="Bill & Subscription">Water</option>
             <option value="Gas" data-category="Bill & Subscription">Gas</option>
             <option value="Mobile" data-category="Bill & Subscription">Mobile</option>
-            <!-- LLM Models -->
             <option value="ChatGPT" data-category="LLM Models">ChatGPT</option>
             <option value="Claude" data-category="LLM Models">Claude</option>
             <option value="Grok" data-category="LLM Models">Grok</option>
             <option value="Gemini" data-category="LLM Models">Gemini</option>
             <option value="Others" data-category="LLM Models">Others</option>
-            <!-- Peoples -->
             <option value="Family" data-category="Peoples">Family</option>
             <option value="Friends" data-category="Peoples">Friends</option>
             <option value="Relatives" data-category="Peoples">Relatives</option>
@@ -175,26 +166,23 @@
         </div>
 
         <div>
-          <label
-            style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">Payment
-            Mode</label>
-          <div class="payment-mode-row" id="payment-mode-row">
-            <button type="button" class="mode-btn active" data-mode="UPI">📱 UPI</button>
-            <button type="button" class="mode-btn" data-mode="Card">💳 Card</button>
-            <button type="button" class="mode-btn" data-mode="Bank">🏦 Bank</button>
-            <button type="button" class="mode-btn" data-mode="Cash">💵 Cash</button>
+          <label style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Payment Mode</label>
+          <div class="payment-mode-row" id="payment-mode-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button type="button" class="mode-btn active" data-mode="UPI" style="padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text); font-weight: 600;">📱 UPI</button>
+            <button type="button" class="mode-btn" data-mode="Card" style="padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text); font-weight: 600;">💳 Card</button>
+            <button type="button" class="mode-btn" data-mode="Bank" style="padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text); font-weight: 600;">🏦 Bank</button>
+            <button type="button" class="mode-btn" data-mode="Cash" style="padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text); font-weight: 600;">💵 Cash</button>
           </div>
           <input type="hidden" id="expense-mode" value="UPI" />
         </div>
 
         <div>
-          <label
-            style="display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">Date</label>
-          <input type="date" id="expense-date" required />
+          <label for="expense-date" style="display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Date</label>
+          <input type="date" id="expense-date" required style="padding: 14px 18px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 16px;" aria-required="true" />
         </div>
 
-        <div style="display: flex; align-items: flex-end;">
-          <button type="submit" class="btn btn-primary" style="width: 100%;">Add Entry</button>
+        <div style="display: flex; align-items: flex-end; grid-column: span 2;">
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 18px; border-radius: 16px; font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: var(--primary-glow);">🚀 Record Transaction</button>
         </div>
       </form>
 
@@ -212,44 +200,54 @@
       </div>
 
       <!-- Summary -->
-      <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px;">
-        <div class="stat-card" style="border: 1px solid rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.05);">
-          <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; font-weight: 600;">TODAY'S SPENDING</div>
-          <div id="today-total" style="font-size: 1.5rem; font-weight: 700; color: #34D399;">₹0.00</div>
+      <!-- Summary Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 40px;">
+        <div class="stat-card" style="border: 1px solid rgba(52, 211, 153, 0.2); background: rgba(52, 211, 153, 0.05); backdrop-filter: blur(12px); padding: 24px; border-radius: 24px; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(52, 211, 153, 0.1); border-radius: 50%; filter: blur(20px);"></div>
+          <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Today's Spending</div>
+          <div id="today-total" style="font-size: 2rem; font-weight: 800; color: #34D399;">₹0.00</div>
         </div>
-        <div class="stat-card" style="border: 1px solid rgba(91, 108, 242, 0.2); background: rgba(91, 108, 242, 0.05);">
-          <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; font-weight: 600;">MONTH'S SPENDING</div>
-          <div id="month-total" style="font-size: 1.5rem; font-weight: 700; color: #5B6CF2;">₹0.00</div>
+        
+        <div class="stat-card" style="border: 1px solid rgba(91, 108, 242, 0.2); background: rgba(91, 108, 242, 0.05); backdrop-filter: blur(12px); padding: 24px; border-radius: 24px; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(91, 108, 242, 0.1); border-radius: 50%; filter: blur(20px);"></div>
+          <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Month's Spending</div>
+          <div id="month-total" style="font-size: 2rem; font-weight: 800; color: var(--primary-light);">₹0.00</div>
         </div>
-        <div class="stat-card" style="border: 1px solid rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);">
-          <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; font-weight: 600;">BUDGET STATUS</div>
-          <div id="budget-status" style="font-size: 1.5rem; font-weight: 700; color: #F87171;">Not Set</div>
+
+        <div class="stat-card" style="border: 1px solid rgba(248, 113, 113, 0.2); background: rgba(248, 113, 113, 0.05); backdrop-filter: blur(12px); padding: 24px; border-radius: 24px; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: rgba(248, 113, 113, 0.1); border-radius: 50%; filter: blur(20px);"></div>
+          <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Budget Status</div>
+          <div id="budget-status" style="font-size: 1.8rem; font-weight: 800; color: #F87171;">Not Set</div>
         </div>
 
         <!-- Magic SMS Paste -->
-        <div id="sms-parser-card" class="stat-card"
-          style="background: rgba(91, 108, 242, 0.08); border: 1px dashed var(--primary); padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
-          <div style="margin-bottom: 12px;">
-            <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; font-weight: 600;">✨ MAGIC SMS PASTE</div>
-            <textarea id="sms-input" placeholder="Paste bank/UPI SMS here..."
-              style="width: 100%; height: 80px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem; resize: none; background: rgba(255,255,255,0.03); color: var(--text); font-family: inherit;"></textarea>
+        <div id="sms-parser-card" class="stat-card" style="background: rgba(91, 108, 242, 0.08); border: 2px dashed var(--primary); padding: 24px; border-radius: 24px; display: flex; flex-direction: column; justify-content: space-between; grid-column: span 1;">
+          <div style="margin-bottom: 16px;">
+            <div style="font-size: 0.75rem; color: #fff; margin-bottom: 12px; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;">
+              <span style="background: var(--primary); padding: 2px 6px; border-radius: 6px;">AI</span> MAGIC SMS PASTE
+            </div>
+            <textarea id="sms-input" placeholder="Paste bank/UPI SMS here for auto-extraction..." style="width: 100%; height: 90px; padding: 14px; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; font-size: 0.9rem; resize: none; background: rgba(0,0,0,0.3); color: var(--text); font-family: inherit; outline: none; transition: border-color 0.3s;" aria-label="Auto-extract transaction details from SMS text"></textarea>
           </div>
-          <button id="sms-process-btn" class="btn btn-primary"
-            style="width: 100%; border-radius: 12px;">Extract & Add Details</button>
+          <button id="sms-process-btn" class="btn btn-primary" style="width: 100%; border-radius: 14px; padding: 12px; font-weight: 700; box-shadow: var(--primary-glow);">✨ Extract Details</button>
         </div>
 
-        <!-- Missing Month Income Total -->
         <div id="month-income-total" class="hidden"></div>
       </div>
     </section>
 
+    <!-- AI Smart Dashboard Toggle -->
+    <div style="display: flex; justify-content: center; margin-top: 24px;">
+      <button id="toggle-ai-dashboard" class="btn btn-ghost" style="font-size: 0.85rem; padding: 6px 16px; border-radius: 99px; background: rgba(91, 108, 242, 0.1); border-color: rgba(91, 108, 242, 0.2);">
+        📊 Show/Hide AI Insights
+      </button>
+    </div>
+
     <!-- AI Smart Dashboard -->
-    <div id="ai-smart-dashboard" class="animate-fade-in-up" style="margin-top: 32px; display: none;">
-      <div class="minimal-insight-card">
-        <span class="insight-icon">✨</span>
-        <div id="ai-dashboard-insight" class="insight-text">
-          <span class="typing-dots">Analyzing spending...</span>
+    <div id="ai-smart-dashboard" class="animate-fade-in-up" style="margin-top: 20px; display: none;">
+      <div class="minimal-insight-card" style="background: var(--gradient-primary); padding: 24px; border-radius: 20px; box-shadow: var(--primary-glow); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 20px;">
+        <span class="insight-icon" style="font-size: 1.5rem; background: rgba(255,255,255,0.2); width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 14px;">✨</span>
+        <div id="ai-dashboard-insight" class="insight-text" style="color: #fff; font-weight: 600; font-size: 1.05rem; line-height: 1.5;">
+          <span class="typing-dots">Analyzing your spending patterns...</span>
         </div>
       </div>
     </div>
@@ -259,7 +257,11 @@
       <!-- Spending Trend -->
       <div class="chart-card">
         <div class="chart-header">
-          <h3 class="chart-title">📊 7-Day Spending Trend</h3>
+          <h3 class="chart-title">📊 Spending Trend</h3>
+          <div class="chart-filter" id="trend-filter">
+            <button class="filter-btn active" data-range="7">7 Days</button>
+            <button class="filter-btn" data-range="30">30 Days</button>
+          </div>
         </div>
         <div class="chart-container">
           <canvas id="trend-chart"></canvas>
@@ -278,12 +280,12 @@
     </div>
 
     <!-- All Expenses Table -->
-    <section class="expenses-section animate-fade-in-up stagger-2" style="margin-top: 32px;">
-      <div class="section-header">
-        <h3 class="section-title">📋 All Expenses</h3>
-        <div class="row">
-          <input type="text" id="search-input" placeholder="Search expenses..." style="width: 250px;" />
-          <select id="filter-category" style="width: 180px;">
+    <section class="expenses-section animate-fade-in-up stagger-2" style="margin-top: 40px; background: var(--glass); border: 1px solid var(--border); border-radius: 28px; padding: 32px; box-shadow: var(--shadow-lg);">
+      <div class="section-header" style="margin-bottom: 24px;">
+        <h3 class="section-title">📋 Transaction History</h3>
+        <div class="row" style="gap: 16px;">
+          <input type="text" id="search-input" placeholder="Search transactions..." style="width: 280px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; padding: 10px 16px;" aria-label="Search transaction history" />
+          <select id="filter-category" style="width: 200px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; padding: 10px 16px;" aria-label="Filter transactions by category">
             <option value="">All Categories</option>
             <option value="Food & Grocery">🍔 Food & Grocery</option>
             <option value="Investment">📈 Investment</option>
@@ -292,13 +294,23 @@
             <option value="Miscellaneous">📦 Miscellaneous</option>
             <option value="Bill & Subscription">💳 Bill & Subscription</option>
           </select>
-          <button id="export-btn" class="btn btn-secondary hidden">📥 Export CSV</button>
+          <button id="export-btn" class="btn btn-secondary" style="border-radius: 12px; font-weight: 600;">📥 Export CSV</button>
+        </div>
+      </div>
+
+      <!-- Bulk Actions Bar -->
+      <div id="bulk-actions-bar" class="hidden" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; padding: 12px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <span id="selected-count" style="font-size: 0.9rem; font-weight: 600; color: var(--danger);">0 transactions selected</span>
+        <div style="display: flex; gap: 12px;">
+          <button id="bulk-delete-btn" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger); padding: 8px 16px; font-size: 0.85rem;">🗑️ Delete Selected</button>
+          <button id="bulk-cancel-btn" class="btn btn-ghost" style="padding: 8px 16px; font-size: 0.85rem;">Cancel</button>
         </div>
       </div>
 
       <table class="expenses-table">
         <thead>
           <tr>
+            <th title="Select All"><input type="checkbox" id="master-select" aria-label="Select all transactions"></th>
             <th>S.N</th>
             <th style="cursor: pointer;" id="sort-amount">Amount ↕</th>
             <th>Category</th>
@@ -319,6 +331,11 @@
   <!-- THE NEW RADIANT AI CHAT UI -->
   <div id="ai-chat-fab" class="ai-fab">
     <span>🤖</span>
+  </div>
+
+  <!-- Mobile-Only Add Expense FAB -->
+  <div id="add-expense-fab" class="ai-fab" style="right: auto; left: 30px; background: var(--gradient-primary); display: none;" aria-label="Scroll to Add Entry form">
+    <span>➕</span>
   </div>
 
   <div id="ai-chat-popup" class="ai-chat-popup hidden">

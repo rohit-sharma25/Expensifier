@@ -282,8 +282,40 @@
         </div>
       </div>
 
+      <!-- Bank SMS Automation Card -->
+      <div id="bank-sync-card" class="gamification-card animate-fade-in-up stagger-3"
+        style="background: linear-gradient(135deg, rgba(91, 108, 242, 0.1) 0%, rgba(91, 108, 242, 0.05) 100%); border: 1px solid rgba(91, 108, 242, 0.2);">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #5B6CF2;">🏦 Bank SMS Automation</h3>
+        <p class="muted">Skip manual entry entirely!</p>
+
+        <div id="bank-sync-config" style="margin-top: 24px; text-align: left;">
+          <div id="sync-key-display" style="display: none; margin-bottom: 20px;">
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase;">Your Sync Secret Key</label>
+            <div style="display: flex; gap: 10px; margin-top: 5px;">
+              <code id="sms-secret-key" style="background: var(--bg-elevated); padding: 12px; border-radius: 8px; flex: 1; font-family: monospace; border: 1px solid var(--border); overflow-x: auto;">********</code>
+              <button id="copy-secret-btn" class="btn-icon" title="Copy Key">📋</button>
+            </div>
+            
+            <label style="font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-top: 15px; display: block;">Webhook URL</label>
+            <div style="display: flex; gap: 10px; margin-top: 5px;">
+              <code id="webhook-url" style="background: var(--bg-elevated); padding: 12px; border-radius: 8px; flex: 1; font-size: 0.8rem; border: 1px solid var(--border); overflow-x: auto;">https://us-central1-expensifier-ashy.cloudfunctions.net/bankSmsWebhook</code>
+              <button id="copy-webhook-btn" class="btn-icon" title="Copy URL">📋</button>
+            </div>
+          </div>
+
+          <button id="setup-bank-sync-btn" class="btn btn-primary"
+            style="background: #5B6CF2; border-color: #5B6CF2; width: 100%;">Set Up Bank Sync</button>
+          
+          <div id="sync-help" style="font-size: 0.8rem; color: var(--muted); margin-top: 12px; line-height: 1.4;">
+            1. Install "SMS Forwarder" app on Android.<br>
+            2. Forward Bank SMS to the Webhook URL above.<br>
+            3. Use the Secret Key for authorization.
+          </div>
+        </div>
+      </div>
+
       <!-- Telegram Bot Sync Card -->
-      <div id="telegram-sync-card" class="gamification-card animate-fade-in-up stagger-3"
+      <div id="telegram-sync-card" class="gamification-card animate-fade-in-up stagger-4"
         style="background: linear-gradient(135deg, rgba(36, 161, 222, 0.1) 0%, rgba(36, 161, 222, 0.05) 100%); border: 1px solid rgba(36, 161, 222, 0.2);">
         <h3 style="font-size: 1.25rem; font-weight: 800; color: #24A1DE;">📱 Telegram Bot Sync</h3>
         <p class="muted">Chat with your data on the go!</p>
@@ -344,6 +376,30 @@
       </div>
     </section>
   </main>
+
+  <!-- THE NEW RADIANT AI CHAT UI -->
+  <div id="ai-chat-fab" class="ai-fab">
+    <span>🤖</span>
+  </div>
+
+  <div id="ai-chat-popup" class="ai-chat-popup hidden">
+    <div class="ai-chat-header">
+      <div class="ai-chat-title">
+        <span>🤖</span>
+        <span>Finance AI</span>
+      </div>
+      <button id="ai-chat-close" class="btn-icon"
+        style="background:none; border:none; color:white; cursor:pointer; font-size:1.5rem;">×</button>
+    </div>
+    <div id="ai-chat-body" class="ai-chat-body">
+      <div class="msg-ai">Hello! I'm your new financial advisor. How can I help you today?</div>
+    </div>
+    <div class="ai-chat-footer">
+      <input type="text" id="ai-chat-input" class="ai-chat-input" placeholder="Type your question..."
+        autocomplete="off">
+      <button id="ai-chat-send" class="ai-chat-send">🚀</button>
+    </div>
+  </div>
 
   <script type="module" src="js/profile.js"></script>
 </body>

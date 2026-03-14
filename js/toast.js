@@ -7,7 +7,7 @@
  * @param {'success'|'error'|'info'|'warning'} type
  * @param {number} duration - Auto-dismiss after ms (default 3500)
  */
-export function showToast(message, type = 'success', duration = 3500) {
+export const showToast = function(message, type = 'success', duration = 3500) {
   let container = document.getElementById('toast-container');
   if (!container) {
     container = document.createElement('div');
@@ -37,3 +37,7 @@ export function showToast(message, type = 'success', duration = 3500) {
     setTimeout(() => toast.remove(), 400);
   }, duration);
 }
+
+// Keep it globally available for legacy window.alert replacements
+window.showToast = showToast;
+

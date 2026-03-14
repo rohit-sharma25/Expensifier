@@ -376,44 +376,84 @@ export class AIService {
     }
 
     /**
-     * AI-Powered SMS Parsing Fallback
+     * AI-Powered Bank Statement Parsing (Bulk)
      */
-    static async parseSMSWithAI(text) {
-        if (!this.majesticKey) return null;
+    static async parseStatement(text) {
+        if (!this.majesticKey) return [];
 
         const systemPrompt = `
-            You are "Expensify SMS Engine". Your job is to extract data from bank transaction SMS.
-            Extract: Amount (Number), Type (expense/income), Description (Merchant name or recipient), Category (One of: Food & Grocery, Traveling, Shopping, Bill & Subscription, Investment, Peoples, LLM Models, Miscellaneous), Date (YYYY-MM-DD).
+            You are "Expensify Statement Processor". Extract ALL transactions from this bank statement text.
+            Identify: Amount, Type (expense/income), Description (Merchant), Category, and Date.
 
-            Valid Categories:
-            - Food & Grocery (Resturants, UberEats, Supermarkets)
-            - Traveling (Cabs, Flights, Petrol, Trains)
-            - Shopping (Amazon, Retail, Clothing)
-            - Bill & Subscription (Netflix, Mobile Recharge, Electricity)
-            - Investment (Stocks, Mutual Funds, Gold)
-            - Peoples (Transfer to friends/family)
-            - LLM Models (OpenAI, Anthropic, etc.)
-            - Miscellaneous (Everything else)
-
-            Return ONLY a JSON object:
-            {"amount": 500.0, "type": "expense", "description": "Zomato", "category": "Food & Grocery", "date": "2023-12-01"}
+            Categories: Food & Grocery, Traveling, Shopping, Bill & Subscription, Investment, Peoples, LLM Models, Miscellaneous.
+            
+            Return ONLY a JSON array of objects:
+            [{"amount": 500.0, "type": "expense", "description": "Zomato", "category": "Food & Grocery", "subCategory": "Restaurant", "date": "2023-12-01"}]
+            
+            Rules:
+            1. If you can't find a category, use "Miscellaneous".
+            2. Extract EVERY transaction mentioned in the text.
+            3. Return only valid JSON.
         `;
 
         try {
             const data = await this.chatWithRetry({
-                model: "llama-3.1-8b-instant", // Use faster/cheaper model for parsing
+                model: "llama-3.3-70b-versatile",
                 messages: [
                     { role: "system", content: systemPrompt },
-                    { role: "user", content: `Parse this SMS: "${text}"` }
+                    { role: "user", content: `Process this statement text:\n"${text.substring(0, 15000)}"` } // Limit text length for token safety
                 ],
-                temperature: 0.1, // Low temperature for extraction accuracy
+                temperature: 0.1,
                 response_format: { type: "json_object" }
             });
 
-            const result = JSON.parse(data.choices[0].message.content);
-            return result;
+            const content = data.choices[0].message.content;
+            // Handle possibility of raw array vs object containing array
+            let transactions = JSON.parse(content);
+            if (transactions.transactions) transactions = transactions.transactions;
+            if (!Array.isArray(transactions)) transactions = [transactions];
+            
+            return transactions;
         } catch (error) {
-            console.error("AI SMS Parse Error:", error);
+            console.error("Statement Parse error:", error);
+            return [];
+        }
+    }
+
+    /**
+     * AI-Powered Receipt Parsing (Single)
+     */
+    static async parseReceipt(text) {
+        if (!this.majesticKey) return null;
+
+        const systemPrompt = `
+            You are "Expensify Receipt Analyst". Extract transaction details from this raw OCR text.
+            Identify: Amount, Description (Merchant), Category, and Date.
+
+            Categories: Food & Grocery, Traveling, Shopping, Bill & Subscription, Investment, Peoples, LLM Models, Miscellaneous.
+            
+            Return ONLY a single valid JSON object:
+            {"amount": 500.0, "type": "expense", "description": "Zomato", "category": "Food & Grocery", "subCategory": "Restaurant", "date": "2023-12-01"}
+            
+            Rules:
+            1. If you can't find a category, use "Miscellaneous".
+            2. Return ONLY the JSON object.
+        `;
+
+        try {
+            const data = await this.chatWithRetry({
+                model: "llama-3.3-70b-versatile",
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: `Process this receipt text:\n"${text.substring(0, 5000)}"` }
+                ],
+                temperature: 0.1,
+                response_format: { type: "json_object" }
+            });
+
+            return JSON.parse(data.choices[0].message.content);
+        } catch (error) {
+            console.error("Receipt Parse error:", error);
             return null;
         }
     }

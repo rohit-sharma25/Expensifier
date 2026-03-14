@@ -13,16 +13,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             renderUserInfo(user);
             await renderGamificationStats();
-            await renderFinancialSummary(user.uid);
             await initTelegramSync(user.uid);
             await initBankSync(user.uid);
             
-            // Subscribe to finances to keep AI context fresh
+            // Fetch budget first
+            const budgetData = await DBService.fetchData(user.uid, 'monthlyBudget');
+            const settings = budgetData.find(b => b.id === 'settings');
+            const monthlyBudget = settings ? settings.value : 0;
+
+            // Subscribe to finances to keep UI and AI context fresh
             DBService.subscribe(user.uid, 'finances', (data) => {
-                const state = FinancialEngine.calculateState(data, null);
-                const risks = FinancialEngine.runRiskEngine(state, null);
+                const state = FinancialEngine.calculateState(data, monthlyBudget);
+                const risks = FinancialEngine.runRiskEngine(state, monthlyBudget);
                 const behavior = FinancialEngine.runBehaviorModel(data);
                 
+                renderFinancialSummary(data, state, risks, monthlyBudget);
+
                 AIService.init({
                     fab: document.getElementById('ai-chat-fab'),
                     popup: document.getElementById('ai-chat-popup'),
@@ -32,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: document.getElementById('ai-chat-body')
                 }, () => ({
                     finances: data,
-                    budget: null, // Budget could be fetched but keeping it simple for profile view
+                    budget: monthlyBudget,
                     engineState: { state, risks, behavior }
                 }));
             });
@@ -46,7 +52,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     photoURL: "https://ui-avatars.com/api/?name=Guest&background=5B6CF2&color=fff"
                 });
                 await renderGamificationStats();
-                await renderFinancialSummary(null);
+                
+                const budgetData = await DBService.fetchData(null, 'monthlyBudget');
+                const settings = budgetData.find(b => b.id === 'settings');
+                const monthlyBudget = settings ? settings.value : 0;
+                
+                // For local, we can just fetch once or listen if needed.
+                // Reusing sub for simplicity
+                DBService.subscribe(null, 'finances', (data) => {
+                    const state = FinancialEngine.calculateState(data, monthlyBudget);
+                    const risks = FinancialEngine.runRiskEngine(state, monthlyBudget);
+                    renderFinancialSummary(data, state, risks, monthlyBudget);
+                });
             } else {
                 window.location.href = 'index.html';
             }
@@ -81,18 +98,86 @@ async function renderGamificationStats() {
     document.getElementById('xp-bar-fill').style.width = `${progress.percent}%`;
     document.getElementById('xp-away').textContent = progress.xpRequiredForNext - progress.xpInLevel;
     document.getElementById('next-level-num').textContent = progress.currentLevel + 1;
-    document.getElementById('total-xp-earned').textContent = `${stats.xp} XP`;
+    document.getElementById('total-xp-earned').textContent = `${stats.xp || 0} XP`;
 
-    // Rank logic
-    const ranks = ["NOVICE", "APPRENTICE", "SAVER", "STRATEGIST", "ELITE", "MAESTRO"];
+    // Rank logic - RPG Style
+    const ranks = ["NOVICE", "APPRENTICE", "SAVER", "STRATEGIST", "ELITE", "MAESTRO", "FINANCE SENSEI", "WEALTH GRANDMASTER"];
     const rankIndex = Math.min(Math.floor(stats.level / 2), ranks.length - 1);
-    document.getElementById('rank-name').textContent = ranks[rankIndex];
+    const rankElement = document.getElementById('rank-name');
+    if (rankElement) {
+        rankElement.textContent = ranks[rankIndex];
+        // Dynamic colors for high ranks
+        if (stats.level >= 10) rankElement.style.color = '#FFD700'; // Gold
+        else if (stats.level >= 6) rankElement.style.color = '#A78BFA'; // Violet
+    }
+
+    await renderAchievements(stats);
 }
 
-async function renderFinancialSummary(uid) {
-    const finances = await DBService.fetchData(uid, 'finances');
+async function renderAchievements(stats) {
+    const grid = document.getElementById('achievements-grid');
+    if (!grid) return;
 
+    // Standard achievements logic
+    const achievements = [
+        { id: 'starter', icon: '🚀', title: 'Fast Starter', desc: 'Add 3 transactions', check: (s) => (s.xp || 0) >= 100 },
+        { id: 'saver', icon: '💎', title: 'Wealth Builder', desc: 'Reach Level 5', check: (s) => (s.level || 0) >= 5 },
+        { id: 'master', icon: '🔥', title: 'Finance Master', desc: 'Reach Level 10', check: (s) => (s.level || 0) >= 10 }
+    ];
+
+    let unlockedCount = 0;
+    grid.innerHTML = achievements.map(a => {
+        const isUnlocked = a.check(stats);
+        if (isUnlocked) unlockedCount++;
+        
+        return `
+            <div class="achievement-item animate-fade-in-up" style="${isUnlocked ? '' : 'opacity: 0.6; filter: grayscale(1);'}">
+                <span class="achievement-icon">${a.icon}</span>
+                <h4 style="font-weight: 800; margin-bottom: 8px; color: white;">${a.title}</h4>
+                <p style="font-size: 0.85rem; color: #64748B;">${a.desc}</p>
+                <span class="status-badge ${isUnlocked ? 'status-unlocked' : 'status-locked'}">
+                    ${isUnlocked ? 'UNLOCKED' : 'LOCKED'}
+                </span>
+            </div>
+        `;
+    }).join('');
+
+    const countElement = document.getElementById('achievement-count');
+    if (countElement) countElement.textContent = unlockedCount;
+}
+
+function renderFinancialSummary(finances, state, risks, monthlyBudget) {
     document.getElementById('total-tx').textContent = finances.length;
+
+    // 1. Calculate and Render Savings Score (Grade)
+    const scoreElement = document.getElementById('savings-score');
+    if (scoreElement) {
+        let grade = 'A+';
+        let color = '#00D09C'; // Neon Green
+
+        if (monthlyBudget > 0) {
+            const risk = risks.riskScore || 0;
+            if (risk < 20) { grade = 'A+'; color = '#00D09C'; }
+            else if (risk < 40) { grade = 'B'; color = '#34D399'; }
+            else if (risk < 60) { grade = 'C'; color = '#FBBF24'; }
+            else if (risk < 80) { grade = 'D'; color = '#F59E0B'; }
+            else { grade = 'F'; color = '#EF4444'; }
+        } else {
+            grade = 'N/A';
+            color = '#64748B';
+        }
+
+        scoreElement.textContent = grade;
+        scoreElement.style.color = color;
+    }
+
+    // 2. Projected Balance / Burn Rate logic
+    const projectedElement = document.getElementById('projected-balance');
+    if (projectedElement) {
+        const amt = state.projectedEndBalance || 0;
+        projectedElement.textContent = `₹${Math.abs(Math.round(amt)).toLocaleString('en-IN')}${amt < 0 ? ' (Deficit)' : ''}`;
+        projectedElement.style.color = amt < 0 ? '#EF4444' : '#00D09C';
+    }
 
     if (finances.length > 0) {
         // Top Category
@@ -100,12 +185,19 @@ async function renderFinancialSummary(uid) {
         finances.forEach(f => {
             if (f.type === 'expense') cats[f.category] = (cats[f.category] || 0) + 1;
         });
-        const top = Object.entries(cats).sort((a, b) => b[1] - a[1])[0];
+        const sortedCats = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+        const top = sortedCats[0];
         if (top) document.getElementById('top-category').textContent = top[0];
 
         // Active Days
         const dates = new Set(finances.map(f => f.dateISO));
         document.getElementById('active-days').textContent = dates.size;
+        
+        // Burn Rate
+        const burnElement = document.getElementById('daily-burn');
+        if (burnElement) {
+            burnElement.textContent = `₹${Math.round(state.burnRatePerDay || 0).toLocaleString('en-IN')}/day`;
+        }
     }
 }
 

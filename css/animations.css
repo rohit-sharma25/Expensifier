@@ -182,6 +182,36 @@
     }
 }
 
+@keyframes mesh-gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes glow-pulse {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(91, 108, 242, 0.4), 0 0 20px rgba(91, 108, 242, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(91, 108, 242, 0.8), 0 0 40px rgba(91, 108, 242, 0.4);
+    }
+}
+
+@keyframes rank-float {
+    0%, 100% {
+        transform: translateY(0) scale(1.05);
+    }
+    50% {
+        transform: translateY(-8px) scale(1.1);
+    }
+}
+
 /* ========== UTILITY CLASSES ========== */
 
 .animate-fade-in {

@@ -26,13 +26,16 @@ export class FinancialEngine {
             .filter(f => f.type === 'income' && f.dateISO.startsWith(currentMonth))
             .reduce((sum, f) => sum + f.amount, 0);
 
-        const balanceLeft = (monthlyBudget || 0) - monthExpenses;
+        const budget = monthlyBudget || 0;
+        const balanceLeft = budget - monthExpenses;
         const burnRatePerDay = currentDay > 0 ? monthExpenses / currentDay : 0;
-        const projectedEndBalance = (monthlyBudget || 0) - (burnRatePerDay * daysInMonth);
+        const projectedEndBalance = budget > 0 ? budget - (burnRatePerDay * daysInMonth) : -(burnRatePerDay * daysInMonth);
 
         let safetyLevel = 'Stable';
-        if (projectedEndBalance < 0) safetyLevel = 'Critical';
-        else if (projectedEndBalance < (monthlyBudget * 0.15)) safetyLevel = 'Warning';
+        if (budget > 0) {
+            if (projectedEndBalance < 0) safetyLevel = 'Critical';
+            else if (projectedEndBalance < (budget * 0.15)) safetyLevel = 'Warning';
+        }
 
         return {
             balanceLeft,

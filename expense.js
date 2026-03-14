@@ -1,4 +1,5 @@
 // expense.js (Enhanced with Charts & Analytics)
+import { OCRService } from './js/ocr-service.js';
 import { AuthService } from './js/auth-service.js';
 import { DBService } from './js/db-service.js';
 import { AIService } from './js/ai-service.js';
@@ -11,7 +12,10 @@ import { calculateFinanceStats, analyzeSpendingByCategory, getSpendingTrend, cal
 import { parseSMS } from './js/sms-parser.js';
 
 const TIMEZONE = "Asia/Kolkata";
-const todayStr = () => new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 // Keyboard Shortcuts
 document.addEventListener('keydown', (e) => {
@@ -22,7 +26,7 @@ document.addEventListener('keydown', (e) => {
     if (popup) popup.classList.remove('active');
     if (overlay) overlay.style.display = 'none';
   }
-  
+
   // 'n' to focus the Add Entry description input
   if (e.key.toLowerCase() === 'n' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
     e.preventDefault();
@@ -182,7 +186,7 @@ let unsubBudget = null;
 
 AuthService.onUserChange((user) => {
   currentUser = user;
-  
+
   if (user) {
     // if we were previously in local-only mode, disable it now that auth succeeded
     if (AuthService.isLocalOnly()) {
@@ -225,8 +229,8 @@ AuthService.onUserChange((user) => {
   const uid = user ? user.uid : (AuthService.isLocalOnly() ? null : null);
 
   // ✅ Clear old subscriptions before setting up new ones
-  if (unsubFinances) { try { unsubFinances(); } catch(e) {} unsubFinances = null; }
-  if (unsubBudget) { try { unsubBudget(); } catch(e) {} unsubBudget = null; }
+  if (unsubFinances) { try { unsubFinances(); } catch (e) { } unsubFinances = null; }
+  if (unsubBudget) { try { unsubBudget(); } catch (e) { } unsubBudget = null; }
 
   // ✅ Set up subscriptions with correct uid
   console.log('📡 Setting up subscriptions for uid:', uid || 'local');
@@ -358,11 +362,11 @@ function initBulkActions() {
         const idsToDelete = Array.from(selectedIds);
         bulkDeleteBtn.disabled = true;
         bulkDeleteBtn.textContent = '🗑️ Deleting...';
-        
+
         for (const id of idsToDelete) {
           await DBService.deleteData(currentUser?.uid, 'finances', id);
         }
-        
+
         selectedIds.clear();
         masterSelect.checked = false;
         bulkDeleteBtn.disabled = false;
@@ -617,7 +621,7 @@ if (form) {
 
     const desc = descInput.value.trim();
     const amount = parseFloat(amountInput.value);
-    const type = toggleIncome.classList.contains('active') ? 'income' : 'expense';
+    const type = toggleIncome && toggleIncome.classList.contains('active-income') ? 'income' : 'expense';
     const category = categorySelect.value;
     const subCategory = subCategorySelect.value;
     const mode = document.getElementById('expense-mode').value;
@@ -676,11 +680,16 @@ if (form) {
         console.warn("Telegram notification error (non-critical):", err);
       }
 
-      // Gamification: Award 10 XP
+      // Gamification: Award points based on entry type
       try {
         const { GamificationService } = await import('./js/gamification-service.js');
-        await GamificationService.awardPoints(10);
-        updateHeaderLevel();
+        if (type === 'income') {
+          await GamificationService.awardPoints(10);
+          updateHeaderLevel();
+        } else if (category === 'Investment') {
+          await GamificationService.awardPoints(20);
+          updateHeaderLevel();
+        }
       } catch (err) {
         console.warn("Gamification points not awarded:", err);
       }
@@ -691,7 +700,7 @@ if (form) {
       if (categorySelect) categorySelect.value = "";
       if (subCategorySelect) subCategorySelect.value = "";
       // Don't clear date to keep UX smooth for multiple entries on same day
-      
+
       showToast('✅ Entry added successfully!', 'success');
       NotificationService.requestPermission();
     } catch (err) {
@@ -768,6 +777,13 @@ if (budgetSave) {
       renderAnalytics();
 
       showToast(`Monthly budget set to ₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 'success');
+
+      // Gamification: Award 100 XP for setting a budget (encourages planning)
+      try {
+        const { GamificationService } = await import('./js/gamification-service.js');
+        await GamificationService.awardPoints(100);
+        updateHeaderLevel();
+      } catch (err) {}
     } catch (error) {
       console.error('Error saving budget:', error);
       showToast('Failed to save budget. Please check your connection or storage.', 'error');
@@ -930,11 +946,16 @@ if (processSmsBtn && smsPasteArea) {
 
         await DBService.saveData(currentUser?.uid, 'finances', id, expenseData);
 
-        // Gamification XP
+        // Gamification XP (Only for wealth-building items)
         try {
           const { GamificationService } = await import('./js/gamification-service.js');
-          await GamificationService.awardPoints(10);
-          updateHeaderLevel();
+          if (expenseData.type === 'income') {
+            await GamificationService.awardPoints(10);
+            updateHeaderLevel();
+          } else if (expenseData.category === 'Investment') {
+            await GamificationService.awardPoints(20);
+            updateHeaderLevel();
+          }
         } catch (err) {
           console.warn("Gamification points not awarded:", err);
         }
@@ -1010,4 +1031,243 @@ async function updateHeaderLevel() {
   } catch (err) {
     console.warn("Failed to update header level:", err);
   }
+}
+
+// ==========================================
+// BANK STATEMENT UPLOAD LOGIC
+// ==========================================
+const uploadZone = document.getElementById('upload-zone');
+const fileInput = document.getElementById('statement-upload');
+const importModal = document.getElementById('import-modal');
+const importList = document.getElementById('import-list');
+const importConfirmBtn = document.getElementById('import-confirm');
+const importCancelBtn = document.getElementById('import-cancel');
+const closeModalBtn = document.getElementById('close-import-modal');
+
+let extractedTransactions = [];
+
+if (uploadZone && fileInput) {
+  uploadZone.addEventListener('click', () => fileInput.click());
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.style.borderColor = 'var(--primary)';
+    uploadZone.style.background = 'rgba(91, 108, 242, 0.1)';
+  });
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.style.borderColor = 'var(--border-glow)';
+    uploadZone.style.background = 'rgba(91, 108, 242, 0.03)';
+  });
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') handleFileUpload(file);
+    else showToast('Please upload a PDF file', 'error');
+  });
+
+  fileInput.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) handleFileUpload(file);
+  };
+}
+
+async function handleFileUpload(file) {
+  const originalContent = uploadZone.innerHTML;
+  uploadZone.innerHTML = `
+        <div class="typing-dots" style="font-size: 1.5rem; margin-bottom: 10px;">...</div>
+        <h4 style="font-weight: 700; color: var(--primary-light);">Reading PDF & AI Parsing...</h4>
+        <p style="color: var(--muted);">Analyzing your statement, please wait.</p>
+    `;
+  uploadZone.style.pointerEvents = 'none';
+
+    try {
+        const text = await extractTextFromPDF(file);
+        const rawTxs = await AIService.parseStatement(text);
+        extractedTransactions = rawTxs.map(tx => ({
+            ...tx,
+            sourceMode: 'Bank Statement'
+        }));
+        
+        if (extractedTransactions.length > 0) {
+            renderImportModal();
+        } else {
+            showToast('AI could not find any transactions in this file.', 'warning');
+        }
+    } catch (err) {
+    console.error("Upload Error:", err);
+    showToast('Failed to process statement: ' + err.message, 'error');
+  } finally {
+    uploadZone.innerHTML = originalContent;
+    uploadZone.style.pointerEvents = 'auto';
+    fileInput.value = '';
+  }
+}
+
+async function extractTextFromPDF(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdfjsLib = window['pdfjs-dist/build/pdf'];
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+  let fullText = "";
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    fullText += textContent.items.map(item => item.str).join(' ') + "\n";
+  }
+  return fullText;
+}
+
+function renderImportModal() {
+  importList.innerHTML = extractedTransactions.map((tx, idx) => `
+        <div class="stat-card" style="margin-bottom: 12px; padding: 20px; flex-direction: row; align-items: center; justify-content: flex-start; gap: 20px;">
+            <input type="checkbox" checked data-idx="${idx}" style="transform: scale(1.5);">
+            <div style="flex: 1;">
+                <div style="font-weight: 700; color: var(--text);">${tx.description || 'Unknown'}</div>
+                <div style="font-size: 0.8rem; color: var(--muted);">${tx.category} • ${tx.date}</div>
+            </div>
+            <div style="font-size: 1.2rem; font-weight: 800; color: ${tx.type === 'income' ? 'var(--success)' : 'var(--danger)'}">
+                ${tx.type === 'income' ? '+' : '-'} ₹${Number(tx.amount || 0).toFixed(2)}
+            </div>
+        </div>
+    `).join('');
+
+  importModal.classList.remove('hidden');
+}
+
+if (importConfirmBtn) {
+  importConfirmBtn.onclick = async () => {
+    const selectedCheckboxes = importList.querySelectorAll('input:checked');
+    if (selectedCheckboxes.length === 0) {
+      showToast('No transactions selected', 'warning');
+      return;
+    }
+
+    importConfirmBtn.disabled = true;
+    importConfirmBtn.textContent = '⏳ Importing...';
+
+    try {
+      for (const cb of selectedCheckboxes) {
+        const tx = extractedTransactions[cb.dataset.idx];
+        const id = crypto.randomUUID();
+        const txData = {
+          id,
+          desc: tx.description || 'Imported Entry',
+          amount: parseFloat(tx.amount) || 0,
+          type: tx.type || 'expense',
+          dateISO: tx.date || todayStr(),
+          category: tx.category || 'Miscellaneous',
+          subCategory: tx.subCategory || 'Other',
+          mode: tx.sourceMode || 'Bank Statement',
+          timestamp: new Date().toISOString()
+        };
+        await DBService.saveData(currentUser?.uid, 'finances', id, txData);
+      }
+
+      showToast(`✅ Successfully imported ${selectedCheckboxes.length} transactions!`, 'success');
+      
+      // Gamification: Award XP for wealth-building imports
+      try {
+        let totalXP = 0;
+        for (const cb of selectedCheckboxes) {
+          const tx = extractedTransactions[cb.dataset.idx];
+          if (tx.type === 'income') totalXP += 10;
+          else if (tx.category === 'Investment') totalXP += 20;
+        }
+        if (totalXP > 0) {
+          const { GamificationService } = await import('./js/gamification-service.js');
+          await GamificationService.awardPoints(totalXP);
+          updateHeaderLevel();
+        }
+      } catch(e) {}
+
+      importModal.classList.add('hidden');
+      renderFinances(); // Refresh table
+    } catch (err) {
+      showToast('Import failed: ' + err.message, 'error');
+    } finally {
+      importConfirmBtn.disabled = false;
+      importConfirmBtn.textContent = '✅ Import All Transactions';
+    }
+  };
+}
+
+const closeModal = () => importModal.classList.add('hidden');
+if (importCancelBtn) importCancelBtn.onclick = closeModal;
+if (closeModalBtn) closeModalBtn.onclick = closeModal;
+
+// Trend Filter Logic for Bento
+const trendFilterBento = document.getElementById('trend-filter-bento');
+if (trendFilterBento) {
+  trendFilterBento.addEventListener('click', (e) => {
+    if (e.target.classList.contains('filter-btn')) {
+      trendRange = parseInt(e.target.dataset.range);
+      trendFilterBento.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      e.target.classList.add('active');
+      renderCharts();
+    }
+  });
+}
+
+const receiptZone = document.getElementById('receipt-zone');
+const receiptInput = document.getElementById('receipt-upload');
+
+if (receiptZone && receiptInput) {
+    receiptZone.addEventListener('click', () => receiptInput.click());
+    receiptZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        receiptZone.style.borderColor = 'var(--primary)';
+        receiptZone.style.background = 'rgba(52, 211, 153, 0.1)';
+    });
+    receiptZone.addEventListener('dragleave', () => {
+        receiptZone.style.borderColor = 'var(--primary)';
+        receiptZone.style.background = 'rgba(52, 211, 153, 0.03)';
+    });
+    receiptZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) handleReceiptUpload(file);
+        else showToast('Please upload an image file', 'error');
+    });
+
+    receiptInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) handleReceiptUpload(file);
+    };
+}
+
+async function handleReceiptUpload(file) {
+    const originalContent = receiptZone.innerHTML;
+    receiptZone.innerHTML = `
+        <div class="typing-dots" style="font-size: 1.5rem; margin-bottom: 10px;">...</div>
+        <h4 style="font-weight: 700; color: #34D399;">Scanning Receipt...</h4>
+        <p style="color: var(--muted); font-size: 0.7rem;">Running OCR & AI Analysis</p>
+    `;
+    receiptZone.style.pointerEvents = 'none';
+
+    try {
+        showToast('Extracting text with OCR...', 'info');
+        const text = await OCRService.recognize(file);
+        
+        showToast('AI Analyzing bill...', 'info');
+        const result = await AIService.parseReceipt(text);
+        
+        if (result) {
+            extractedTransactions = [{
+                ...result,
+                sourceMode: 'Receipt Scan'
+            }];
+            renderImportModal();
+            showToast('✅ Bill parsed! Please review and confirm.', 'success');
+        } else {
+            showToast('AI could not parse the receipt clearly.', 'warning');
+        }
+    } catch (err) {
+        console.error("Receipt Error:", err);
+        showToast('Processing failed: ' + err.message, 'error');
+    } finally {
+        receiptZone.innerHTML = originalContent;
+        receiptZone.style.pointerEvents = 'auto';
+        receiptInput.value = '';
+    }
 }

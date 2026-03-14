@@ -1041,6 +1041,17 @@
                 loadData(null);
             }
             updateHeaderLevel();
+            
+            // Handle URL fragment/hash for tab selection
+            const handleHash = () => {
+                const hash = window.location.hash;
+                if (hash === '#goals') {
+                    const goalsLink = document.querySelector('[data-tab="goals"]');
+                    if (goalsLink) goalsLink.click();
+                }
+            };
+            handleHash();
+            window.addEventListener('hashchange', handleHash);
         });
 
         async function loadData(uid) {
@@ -1312,10 +1323,10 @@
                         }
                     }
 
-                    // Gamification: Award 10 XP
+                    // Gamification: Award 50 XP (High reward for investing)
                     try {
                         const { GamificationService } = await import('./js/gamification-service.js');
-                        await GamificationService.awardPoints(10);
+                        await GamificationService.awardPoints(50);
                         updateHeaderLevel();
                     } catch (err) {
                         console.warn("Gamification points not awarded:", err);

@@ -577,14 +577,19 @@
             contextData.finances = data;
 
             // Calculate and Save Engine State (Async, non-blocking)
-            if (contextData.budget && data.length > 0) {
-              const state = FinancialEngine.calculateState(data, contextData.budget);
-              const risks = FinancialEngine.runRiskEngine(state, contextData.budget);
+            if (data.length > 0) {
+              const state = FinancialEngine.calculateState(data, contextData.budget || 0);
+              const risks = FinancialEngine.runRiskEngine(state, contextData.budget || 0);
               const behavior = FinancialEngine.runBehaviorModel(data);
 
               DBService.saveData(uid, 'engineState', 'financialState', { id: 'financialState', ...state });
               DBService.saveData(uid, 'engineState', 'riskSignals', { id: 'riskSignals', ...risks });
               DBService.saveData(uid, 'engineState', 'behaviorProfile', { id: 'behaviorProfile', ...behavior });
+              
+              // Update Daily Spending & Health UI
+              updateBurnRateUI(state);
+              updateHealthUI(risks);
+              updateAISmartDashboard(state, risks, behavior);
             }
 
             renderDashboard(contextData.finances, contextData.budget);
@@ -602,14 +607,19 @@
             const settings = data.find(d => d.id === 'settings');
             contextData.budget = settings ? settings.value : null;
 
-            if (contextData.budget && contextData.finances.length > 0) {
-              const state = FinancialEngine.calculateState(contextData.finances, contextData.budget);
-              const risks = FinancialEngine.runRiskEngine(state, contextData.budget);
+            if (contextData.finances.length > 0) {
+              const state = FinancialEngine.calculateState(contextData.finances, contextData.budget || 0);
+              const risks = FinancialEngine.runRiskEngine(state, contextData.budget || 0);
               const behavior = FinancialEngine.runBehaviorModel(contextData.finances);
 
               DBService.saveData(uid, 'engineState', 'financialState', { id: 'financialState', ...state });
               DBService.saveData(uid, 'engineState', 'riskSignals', { id: 'riskSignals', ...risks });
               DBService.saveData(uid, 'engineState', 'behaviorProfile', { id: 'behaviorProfile', ...behavior });
+
+              // Update Daily Spending & Health UI
+              updateBurnRateUI(state);
+              updateHealthUI(risks);
+              updateAISmartDashboard(state, risks, behavior);
             }
 
             renderDashboard(contextData.finances, contextData.budget);
@@ -621,7 +631,8 @@
 
         // Add goals subscription too
         currentUnsubs.goals = DBService.subscribe(uid, 'goals', (data) => {
-           const savedGoal = data.find(g => g.id === 'userGoal');
+           // Look for userGoal first, otherwise take the most recent goal
+           const savedGoal = data.find(g => g.id === 'userGoal') || data[data.length - 1];
            updateGoalDisplay(savedGoal || null);
         });
 

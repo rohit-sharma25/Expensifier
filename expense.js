@@ -783,7 +783,7 @@ if (budgetSave) {
         const { GamificationService } = await import('./js/gamification-service.js');
         await GamificationService.awardPoints(100);
         updateHeaderLevel();
-      } catch (err) {}
+      } catch (err) { }
     } catch (error) {
       console.error('Error saving budget:', error);
       showToast('Failed to save budget. Please check your connection or storage.', 'error');
@@ -1079,20 +1079,20 @@ async function handleFileUpload(file) {
     `;
   uploadZone.style.pointerEvents = 'none';
 
-    try {
-        const text = await extractTextFromPDF(file);
-        const rawTxs = await AIService.parseStatement(text);
-        extractedTransactions = rawTxs.map(tx => ({
-            ...tx,
-            sourceMode: 'Bank Statement'
-        }));
-        
-        if (extractedTransactions.length > 0) {
-            renderImportModal();
-        } else {
-            showToast('AI could not find any transactions in this file.', 'warning');
-        }
-    } catch (err) {
+  try {
+    const text = await extractTextFromPDF(file);
+    const rawTxs = await AIService.parseStatement(text);
+    extractedTransactions = rawTxs.map(tx => ({
+      ...tx,
+      sourceMode: 'Bank Statement'
+    }));
+
+    if (extractedTransactions.length > 0) {
+      renderImportModal();
+    } else {
+      showToast('AI could not find any transactions in this file.', 'warning');
+    }
+  } catch (err) {
     console.error("Upload Error:", err);
     showToast('Failed to process statement: ' + err.message, 'error');
   } finally {
@@ -1165,7 +1165,7 @@ if (importConfirmBtn) {
       }
 
       showToast(`✅ Successfully imported ${selectedCheckboxes.length} transactions!`, 'success');
-      
+
       // Gamification: Award XP for wealth-building imports
       try {
         let totalXP = 0;
@@ -1179,7 +1179,7 @@ if (importConfirmBtn) {
           await GamificationService.awardPoints(totalXP);
           updateHeaderLevel();
         }
-      } catch(e) {}
+      } catch (e) { }
 
       importModal.classList.add('hidden');
       renderFinances(); // Refresh table
@@ -1213,61 +1213,61 @@ const receiptZone = document.getElementById('receipt-zone');
 const receiptInput = document.getElementById('receipt-upload');
 
 if (receiptZone && receiptInput) {
-    receiptZone.addEventListener('click', () => receiptInput.click());
-    receiptZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        receiptZone.style.borderColor = 'var(--primary)';
-        receiptZone.style.background = 'rgba(52, 211, 153, 0.1)';
-    });
-    receiptZone.addEventListener('dragleave', () => {
-        receiptZone.style.borderColor = 'var(--primary)';
-        receiptZone.style.background = 'rgba(52, 211, 153, 0.03)';
-    });
-    receiptZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('image/')) handleReceiptUpload(file);
-        else showToast('Please upload an image file', 'error');
-    });
+  receiptZone.addEventListener('click', () => receiptInput.click());
+  receiptZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    receiptZone.style.borderColor = 'var(--primary)';
+    receiptZone.style.background = 'rgba(52, 211, 153, 0.1)';
+  });
+  receiptZone.addEventListener('dragleave', () => {
+    receiptZone.style.borderColor = 'var(--primary)';
+    receiptZone.style.background = 'rgba(52, 211, 153, 0.03)';
+  });
+  receiptZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) handleReceiptUpload(file);
+    else showToast('Please upload an image file', 'error');
+  });
 
-    receiptInput.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) handleReceiptUpload(file);
-    };
+  receiptInput.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) handleReceiptUpload(file);
+  };
 }
 
 async function handleReceiptUpload(file) {
-    const originalContent = receiptZone.innerHTML;
-    receiptZone.innerHTML = `
+  const originalContent = receiptZone.innerHTML;
+  receiptZone.innerHTML = `
         <div class="typing-dots" style="font-size: 1.5rem; margin-bottom: 10px;">...</div>
         <h4 style="font-weight: 700; color: #34D399;">Scanning Receipt...</h4>
         <p style="color: var(--muted); font-size: 0.7rem;">Running OCR & AI Analysis</p>
     `;
-    receiptZone.style.pointerEvents = 'none';
+  receiptZone.style.pointerEvents = 'none';
 
-    try {
-        showToast('Extracting text with OCR...', 'info');
-        const text = await OCRService.recognize(file);
-        
-        showToast('AI Analyzing bill...', 'info');
-        const result = await AIService.parseReceipt(text);
-        
-        if (result) {
-            extractedTransactions = [{
-                ...result,
-                sourceMode: 'Receipt Scan'
-            }];
-            renderImportModal();
-            showToast('✅ Bill parsed! Please review and confirm.', 'success');
-        } else {
-            showToast('AI could not parse the receipt clearly.', 'warning');
-        }
-    } catch (err) {
-        console.error("Receipt Error:", err);
-        showToast('Processing failed: ' + err.message, 'error');
-    } finally {
-        receiptZone.innerHTML = originalContent;
-        receiptZone.style.pointerEvents = 'auto';
-        receiptInput.value = '';
+  try {
+    showToast('Extracting text with OCR...', 'info');
+    const text = await OCRService.recognize(file);
+
+    showToast('AI Analyzing bill...', 'info');
+    const result = await AIService.parseReceipt(text);
+
+    if (result) {
+      extractedTransactions = [{
+        ...result,
+        sourceMode: 'Receipt Scan'
+      }];
+      renderImportModal();
+      showToast('✅ Bill parsed! Please review and confirm.', 'success');
+    } else {
+      showToast('AI could not parse the receipt clearly.', 'warning');
     }
+  } catch (err) {
+    console.error("Receipt Error:", err);
+    showToast('Processing failed: ' + err.message, 'error');
+  } finally {
+    receiptZone.innerHTML = originalContent;
+    receiptZone.style.pointerEvents = 'auto';
+    receiptInput.value = '';
+  }
 }

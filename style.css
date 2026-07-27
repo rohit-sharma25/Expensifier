@@ -40,17 +40,17 @@
   --gradient-primary: linear-gradient(135deg, #5B6CF2 0%, #3D4CC2 100%);
   --gradient-dark: linear-gradient(135deg, #161B30 0%, #0F1220 100%);
   --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
-  
+
   /* Borders & Shadows */
   --border: rgba(255, 255, 255, 0.08);
   --border-light: rgba(255, 255, 255, 0.04);
   --border-glow: rgba(91, 108, 242, 0.2);
-  
+
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  
+
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
@@ -96,7 +96,7 @@ html,
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background-color: var(--bg);
-  background-image: 
+  background-image:
     radial-gradient(circle at 10% 20%, rgba(91, 108, 242, 0.05) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(91, 108, 242, 0.03) 0%, transparent 40%);
   background-attachment: fixed;
@@ -728,7 +728,7 @@ body {
 
 .ai-chat-header {
   padding: 24px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), transparent);
   border-bottom: 1px solid var(--border-light);
   color: #fff;
   display: flex;
@@ -971,7 +971,9 @@ select:focus {
 }
 
 @media (max-width: 768px) {
-  .container { padding: 0 16px; }
+  .container {
+    padding: 0 16px;
+  }
 
   .header-content {
     flex-direction: column;
@@ -1288,7 +1290,7 @@ select:focus {
   font-size: 0.92rem;
   font-weight: 600;
   color: #fff;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
   pointer-events: all;
   opacity: 0;
   transform: translateY(20px) scale(0.95);
@@ -1309,16 +1311,34 @@ select:focus {
   transition: all 0.3s ease;
 }
 
-.toast-success { background: linear-gradient(135deg, #059669, #10B981); }
-.toast-error   { background: linear-gradient(135deg, #DC2626, #EF4444); }
-.toast-warning { background: linear-gradient(135deg, #D97706, #F59E0B); }
-.toast-info    { background: linear-gradient(135deg, #1D4ED8, #3B82F6); }
+.toast-success {
+  background: linear-gradient(135deg, #059669, #10B981);
+}
 
-.toast-icon { font-size: 1.1rem; flex-shrink: 0; }
-.toast-msg  { flex: 1; line-height: 1.4; }
+.toast-error {
+  background: linear-gradient(135deg, #DC2626, #EF4444);
+}
+
+.toast-warning {
+  background: linear-gradient(135deg, #D97706, #F59E0B);
+}
+
+.toast-info {
+  background: linear-gradient(135deg, #1D4ED8, #3B82F6);
+}
+
+.toast-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.toast-msg {
+  flex: 1;
+  line-height: 1.4;
+}
 
 .toast-close {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   border: none;
   color: #fff;
   font-size: 1.1rem;
@@ -1333,7 +1353,10 @@ select:focus {
   transition: background 0.2s;
   line-height: 1;
 }
-.toast-close:hover { background: rgba(255,255,255,0.35); }
+
+.toast-close:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
 
 /* ========== NAV ACTIVE PILL ========== */
 
@@ -1345,10 +1368,15 @@ select:focus {
   border-radius: 8px;
   transition: all 0.2s ease;
 }
-.nav-link:hover { color: var(--primary); background: rgba(91,108,242,0.07); }
+
+.nav-link:hover {
+  color: var(--primary);
+  background: rgba(91, 108, 242, 0.07);
+}
+
 .nav-link.active {
   color: #5B6CF2 !important;
-  background: rgba(91,108,242,0.12) !important;
+  background: rgba(91, 108, 242, 0.12) !important;
   border-bottom: none !important;
   font-weight: 700 !important;
 }
@@ -1356,11 +1384,12 @@ select:focus {
 /* ========== TABLE ROW HOVER ========== */
 
 .expenses-table tbody tr:hover {
-  background: rgba(91,108,242,0.04) !important;
+  background: rgba(91, 108, 242, 0.04) !important;
   cursor: default;
 }
+
 .expenses-table tbody tr:nth-child(even) {
-  background: rgba(0,0,0,0.015);
+  background: rgba(0, 0, 0, 0.015);
 }
 
 /* ========== EXPENSE / INCOME PILL TOGGLE ========== */
@@ -1368,7 +1397,7 @@ select:focus {
 .type-toggle-wrap {
   display: flex;
   gap: 8px;
-  background: rgba(0,0,0,0.06);
+  background: rgba(0, 0, 0, 0.06);
   padding: 5px;
   border-radius: 14px;
   width: fit-content;
@@ -1385,17 +1414,21 @@ select:focus {
   color: var(--muted);
   background: transparent;
 }
-.type-pill:hover { color: var(--text); }
+
+.type-pill:hover {
+  color: var(--text);
+}
 
 .type-pill.active-expense {
-  background: rgba(239,68,68,0.12);
+  background: rgba(239, 68, 68, 0.12);
   color: #EF4444;
-  box-shadow: 0 0 18px rgba(239,68,68,0.18);
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.18);
 }
+
 .type-pill.active-income {
-  background: rgba(16,185,129,0.12);
+  background: rgba(16, 185, 129, 0.12);
   color: #10B981;
-  box-shadow: 0 0 18px rgba(16,185,129,0.18);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.18);
 }
 
 /* ========== PAYMENT MODE ICON BUTTONS ========== */
@@ -1421,10 +1454,16 @@ select:focus {
   text-align: center;
   white-space: nowrap;
 }
-.mode-btn:hover { border-color: #5B6CF2; color: #5B6CF2; background: rgba(91,108,242,0.06); }
+
+.mode-btn:hover {
+  border-color: #5B6CF2;
+  color: #5B6CF2;
+  background: rgba(91, 108, 242, 0.06);
+}
+
 .mode-btn.active {
   border-color: #5B6CF2;
-  background: rgba(91,108,242,0.12);
+  background: rgba(91, 108, 242, 0.12);
   color: #5B6CF2;
   font-weight: 700;
 }
@@ -1440,6 +1479,7 @@ select:focus {
   cursor: pointer;
   padding: 4px;
 }
+
 .hamburger span {
   display: block;
   width: 22px;
@@ -1452,12 +1492,10 @@ select:focus {
 /* ========== SKELETON LOADERS ========== */
 
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 75%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.03) 25%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.03) 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
   border-radius: 4px;
@@ -1465,14 +1503,38 @@ select:focus {
   min-height: 1em;
 }
 
-.skeleton-text { width: 100%; height: 0.8rem; margin: 4px 0; }
-.skeleton-title { width: 60%; height: 1.2rem; margin-bottom: 8px; }
-.skeleton-value { width: 80%; height: 2.2rem; margin: 8px 0; }
-.skeleton-circle { width: 40px; height: 40px; border-radius: 50%; }
+.skeleton-text {
+  width: 100%;
+  height: 0.8rem;
+  margin: 4px 0;
+}
+
+.skeleton-title {
+  width: 60%;
+  height: 1.2rem;
+  margin-bottom: 8px;
+}
+
+.skeleton-value {
+  width: 80%;
+  height: 2.2rem;
+  margin: 8px 0;
+}
+
+.skeleton-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
 
 @keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .stat-card.loading .stat-card-value,
@@ -1489,12 +1551,10 @@ select:focus {
   left: var(--spacing-lg);
   right: var(--spacing-lg);
   height: 100px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 75%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.03) 25%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.03) 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s infinite;
   border-radius: var(--radius-md);
@@ -1544,7 +1604,7 @@ select:focus {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: conic-gradient(var(--groww-green) var(--fill), rgba(255,255,255,0.1) 0);
+  background: conic-gradient(var(--groww-green) var(--fill), rgba(255, 255, 255, 0.1) 0);
   box-shadow: inset 0 0 0 10px var(--card-bg);
 }
 
@@ -1570,13 +1630,13 @@ select:focus {
   flex-direction: column;
   gap: 20px;
   padding-left: 20px;
-  border-left: 2px dashed rgba(255,255,255,0.2);
+  border-left: 2px dashed rgba(255, 255, 255, 0.2);
   margin-top: 16px;
 }
 
 .milestone {
   position: relative;
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 16px;
@@ -1623,12 +1683,12 @@ body.light-mode {
   --bg: #F8FAFC;
   --bg-card: #FFFFFF;
   --bg-elevated: #F1F5F9;
-  
-  --text: #0F172A;
-  --text-secondary: #334155;
-  --muted: #64748B;
-  --muted-light: #94A3B8;
-  
+
+  --text: #000000;
+  --text-secondary: #111111;
+  --muted: #444444;
+  --muted-light: #555555;
+
   --border: rgba(0, 0, 0, 0.08);
   --border-light: rgba(0, 0, 0, 0.04);
   --glass: rgba(255, 255, 255, 0.8);
@@ -1643,7 +1703,7 @@ body.light-mode {
 }
 
 body.light-mode {
-  background-image: 
+  background-image:
     radial-gradient(circle at 10% 20%, rgba(91, 108, 242, 0.03) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(91, 108, 242, 0.02) 0%, transparent 40%);
 }
@@ -1665,6 +1725,81 @@ body.light-mode .btn-secondary {
 
 body.light-mode .btn-secondary:hover {
   background: #CBD5E1;
+}
+
+/* Force Solid Black for Financial Values in Light Mode */
+body.light-mode .stat-card-value {
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: #000000 !important;
+  color: #000000 !important;
+}
+
+body.light-mode .stat-card-badge,
+body.light-mode .health-status {
+  background: #f1f5f9 !important;
+  color: #000000 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+body.light-mode .stat-card-trend span {
+  color: #000000 !important;
+}
+
+body.light-mode .stat-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-mode .type-pill.active-expense,
+body.light-mode .type-pill.active-income {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.light-mode .nav-link.active {
+  color: #000000 !important;
+  border-bottom-color: #000000 !important;
+}
+
+/* Broad Enforcement for Solid Black Data Points */
+body.light-mode [data-label="Amount"],
+body.light-mode .amount-cell,
+body.light-mode .stat-card-trend span,
+body.light-mode .trend-up,
+body.light-mode .trend-down,
+body.light-mode .health-status,
+body.light-mode #risk-label,
+body.light-mode #health-status,
+body.light-mode #account-balance,
+body.light-mode #monthly-expenses,
+body.light-mode #total-investment,
+body.light-mode #monthly-income,
+body.light-mode #today-total,
+body.light-mode #month-total,
+body.light-mode #budget-status,
+body.light-mode #goal-amount-display,
+body.light-mode #burn-text {
+  color: #000000 !important;
+  background: none !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+body.light-mode .stat-card-badge {
+  color: #000000 !important;
+  background: #f8fafc !important;
+  border: 1px solid #000000 !important;
+}
+
+body.light-mode .btn-delete {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  background: #ffffff !important;
+}
+
+body.light-mode .btn-delete:hover {
+  background: #000000 !important;
+  color: #ffffff !important;
 }
 
 /* Theme Toggle Button */
@@ -1691,5 +1826,3 @@ body.light-mode .btn-secondary:hover {
   border-color: var(--primary);
   box-shadow: var(--shadow-md);
 }
-
-

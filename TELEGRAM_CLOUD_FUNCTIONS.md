@@ -53,7 +53,7 @@ https://expensifier-ashy.vercel.app/expense.html
 - Send `/start` to activate it
 
 **Check 2:** Browser console errors?
-- Press **F12** → **Console** tab
+- Press **F12** → **Console** tab you can check the network setting in the console 
 - Add an expense and look for red errors
 - Take a screenshot and check the error message
 
